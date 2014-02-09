@@ -26,6 +26,7 @@ def valid_time(time):
     else:
         raise argparse.ArgumentTypeError('is not a correct format')
 
+
 def init_argparser():
     """
     Initializes the ArgumentParser. Allows the two arguments:
