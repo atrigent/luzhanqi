@@ -4,9 +4,9 @@ import argparse
 import re
 
 
-# Time Regex: ^([0-9]+)((s|ms)|((\.\d)(s|ms)))$
-# Starts with any number of digits. Must be follwed by either 's'/'ms'
-# or a decimal point ('.'), one digit, and then 's'/'ms'.
+# Time Regex: ^(\d+)(?:\.(\d+))?(s|ms)$
+# Starts with one or more digits. May be followed by a decimal point ('.')
+# and one or more digits. Must end with a unit ('s'/'ms').
 def valid_time(time):
     """
     Parses the time/move command line argument to make sure it passes a
@@ -20,7 +20,7 @@ def valid_time(time):
     Passing a correct format will return the time string.
 
     """
-    p = re.compile('^([0-9]+)((s|ms)|((\.\d)(s|ms)))$')
+    p = re.compile('^(\d+)(?:\.(\d+))?(s|ms)$')
     if p.match(time):
         return time
     else:
