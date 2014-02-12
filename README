@@ -1,7 +1,10 @@
-Assignment 4
+CS4500-Luzhanqi
+===============
+
+For Northeastern University CS4500's semester project, students must create a text based version of the game Luzhanqi. The software created can be in any language, and will represent a single player in the game. There will be a referee to communicate messages between the two players and verify all moves made are valid. Information on moves, board layout, etc, will be sent to the referee via standard out.
 
 
-Group Members:
+## Group Members:
 
 Devin Hurd - devinhurd@gmail.com
 Xub Wang - wang.xun@husky.neu.edu
@@ -9,7 +12,8 @@ Lu Ji - lu.ji1@husky.neu.edu
 Ari Entlich - entlich.a@husky.neu.edu
 
 
-Instructions:
+## Instructions:
+###### Quoted from the Assignment 4 instructions, by William D. Clinger.
 
 The rapid prototype does not need to be compiled.
 
@@ -34,4 +38,8 @@ says the player goes first and will be given 1.2 seconds per
 move.
 
 
-Explanation above is quoted from the Assignment 4 instructions.
+
+## Testing
+Tests can be run by executing the command
+
+    python -m unittest discover test/
