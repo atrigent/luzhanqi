@@ -37,7 +37,7 @@ def coordtuple(name, axes):
                     raise ValueError()
 
             return super(T, cls).__new__(cls, *args)
-        def absolute_coord(self):
+        def __abs__(self):
             return T(*(abs(component) for component in self))
 
     T.__name__ = name
