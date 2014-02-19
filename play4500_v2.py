@@ -39,6 +39,8 @@ def coordtuple(name, axes):
             return super(T, cls).__new__(cls, *args)
         def __abs__(self):
             return T(*(abs(component) for component in self))
+        def __neg__(self):
+            return T(*(-component for component in self))
 
     T.__name__ = name
 
