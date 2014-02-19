@@ -37,10 +37,15 @@ def coordtuple(name, axes):
                     raise ValueError()
 
             return super(T, cls).__new__(cls, *args)
+
+        def _map_vals(self, func):
+            return T(*map(func, self))
+
         def __abs__(self):
-            return T(*(abs(component) for component in self))
+            return self._map_vals(lambda val: abs(val))
+
         def __neg__(self):
-            return T(*(-component for component in self))
+            return self._map_vals(lambda val: -val)
 
     T.__name__ = name
 
