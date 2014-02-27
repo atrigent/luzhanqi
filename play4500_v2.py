@@ -17,15 +17,6 @@ def namedtuple_with_defaults(typename, *args, **kwargs):
     T.__new__.__defaults__ = defaults
     return T
 
-def irange(*args):
-    args = list(args)
-    if len(args) == 1:
-        args[0] += 1
-    elif len(args) > 1:
-        args[1] += 1
-
-    return range(*args)
-
 def coordtuple(name, axes):
     fields = [axis.symbol for axis in axes]
 
@@ -109,7 +100,8 @@ class LuzhanqiBoard:
         'headquarters': Space('Headquarters', nondiagonals=True, quagmire=True)
     }
 
-    axes = CenteredOriginAxis('x', 5), CenteredOriginAxis('y', 12)
+    x, y = CenteredOriginAxis('x', 5), CenteredOriginAxis('y', 12)
+    axes = (x, y)
     Coord = coordtuple('Coord', axes)
 
     board_spec = defaultdict(lambda: 'station', {
@@ -141,9 +133,9 @@ class LuzhanqiBoard:
                    defeats_sessile_bombs=True,
                    railroad_corners=True),
         'B': Piece('Bomb', 2, 2, bomb=True,
-                   initial_placement=('*', irange(2, 6))),
+                   initial_placement=('*', y[-5:])),
         'L': Piece('Landmine', 3, 1, sessile=True, bomb=True,
-                   initial_placement=('*', irange(5, 6))),
+                   initial_placement=('*', y[-2:])),
         'F': Piece('Flag', 1, 0, sessile=True, lose_on_defeat=True,
                    initial_placement='headquarters')
     }
