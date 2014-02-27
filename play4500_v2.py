@@ -32,8 +32,7 @@ def coordtuple(name, axes):
     class T(namedtuple(name, fields)):
         def __new__(cls, *args):
             for axis, component in zip(axes, args):
-                if component > axis.extreme or \
-                   -component < -axis.extreme:
+                if component not in axis:
                     raise ValueError()
 
             return super(T, cls).__new__(cls, *args)
@@ -51,6 +50,56 @@ def coordtuple(name, axes):
 
     return T
 
+class CenteredOriginAxis:
+    def __init__(self, symbol, num_vals):
+        self.symbol = symbol
+        self.num_vals = num_vals
+
+    def __len__(self):
+        return self.num_vals
+
+    def __getitem__int(self, i):
+        abs_max = self.num_vals // 2
+
+        if not -self.num_vals <= i < self.num_vals:
+            raise IndexError()
+
+        if i < 0:
+            i = self.num_vals + i
+
+        if i < abs_max:
+            return -abs_max + i
+
+        i -= abs_max
+
+        if self.num_vals % 2 != 0:
+            if i == 0:
+                return 0
+
+            i -= 1
+
+        if i < abs_max:
+            return i + 1
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self.__getitem__int(key)
+        elif isinstance(key, slice):
+            return [self[i] for i in range(*key.indices(self.num_vals))]
+        else:
+            raise TypeError()
+
+    def has_all(self, vals):
+        return any(val not in self for val in vals)
+
+    def match(self, matchval):
+        if matchval == '*':
+            return self
+        elif self.has_all(matchval):
+            return matchval
+        else:
+            raise ValueError()
+
 class LuzhanqiBoard:
     Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
                                      diagonals=None, nondiagonals=None, quagmire=False)
@@ -60,14 +109,10 @@ class LuzhanqiBoard:
         'headquarters': Space('Headquarters', nondiagonals=True, quagmire=True)
     }
 
-    Axis = namedtuple('Axis', 'symbol extreme')
-    axes = Axis('x', 2), Axis('y', 6)
+    axes = CenteredOriginAxis('x', 5), CenteredOriginAxis('y', 12)
     Coord = coordtuple('Coord', axes)
 
     board_spec = defaultdict(lambda: 'station', {
-        Coord(0, 0): None,
-        Coord(1, 0): None,
-        Coord(2, 0): None,
         Coord(1, 2): 'camp',
         Coord(0, 3): 'camp',
         Coord(1, 4): 'camp',
@@ -103,9 +148,6 @@ class LuzhanqiBoard:
                    initial_placement='headquarters')
     }
 
-    def _axis_range(axis):
-        return irange(-axis.extreme, axis.extreme)
-
     def __init__(self):
         self.board_state = {
             Coord(*components): None
@@ -132,14 +174,9 @@ class LuzhanqiBoard:
                                                if val == spec))
 
     def _positions_matching(self, spec):
-        def unwildcard(spec):
-            for axis, axis_range in zip(axes, spec):
-                if axis_range == '*':
-                    yield _axis_range(axis)
-                else:
-                    yield axis_range
+        matches = (axis.match(axis_range) for axis, axis_range in zip(axes, spec))
 
-        return product(*unwildcard(spec))
+        return itertools.product(*matches)
 
     def _do_initial_placement(self):
         counts = _initial_piece_counts()
