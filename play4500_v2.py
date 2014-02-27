@@ -55,8 +55,6 @@ class LuzhanqiBoard:
     Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
                                      diagonals=None, nondiagonals=None, quagmire=False)
     spaces = {
-        'front_line': Space('Front Line', initial_placement=False, diagonals=False, nondiagonals=False),
-        'mountain': Space('Mountain', initial_placement=False, diagonals=False, nondiagonals=False),
         'station': Space('Soldier Station', nondiagonals=True),
         'camp': Space('Camp', safe=True, diagonals=True, nondiagonals=True, initial_placement=False),
         'headquarters': Space('Headquarters', nondiagonals=True, quagmire=True)
@@ -67,9 +65,9 @@ class LuzhanqiBoard:
     Coord = coordtuple('Coord', axes)
 
     board_spec = defaultdict(lambda: 'station', {
-        Coord(0, 0): 'front_line',
-        Coord(1, 0): 'mountain',
-        Coord(2, 0): 'front_line',
+        Coord(0, 0): None,
+        Coord(1, 0): None,
+        Coord(2, 0): None,
         Coord(1, 2): 'camp',
         Coord(0, 3): 'camp',
         Coord(1, 4): 'camp',
