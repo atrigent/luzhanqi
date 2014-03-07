@@ -85,7 +85,7 @@ class CenteredOriginAxis:
 
     def match(self, matchval):
         if matchval == '*':
-            return self
+            return list(self)
         elif self.has_all(matchval):
             return matchval
         else:
