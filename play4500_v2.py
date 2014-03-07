@@ -106,11 +106,11 @@ class LuzhanqiBoard:
     axes = (x, y)
     Coord = coordtuple('Coord', axes)
 
-    board_spec = defaultdict(lambda: 'station', {
-        Coord(1, 2): 'camp',
-        Coord(0, 3): 'camp',
-        Coord(1, 4): 'camp',
-        Coord(1, 6): 'headquarters'
+    board_spec = defaultdict(lambda: LuzhanqiBoard.spaces['station'], {
+        Coord(1, 2): spaces['camp'],
+        Coord(0, 3): spaces['camp'],
+        Coord(1, 4): spaces['camp'],
+        Coord(1, 6): spaces['headquarters']
     })
 
     Piece = namedtuple_with_defaults('Piece', 'name', 'initial_count', 'placement_step',
@@ -139,7 +139,7 @@ class LuzhanqiBoard:
         'L': Piece('Landmine', 3, 1, sessile=True, bomb=True,
                    initial_placement=('*', y[-2:])),
         'F': Piece('Flag', 1, 0, sessile=True, lose_on_defeat=True,
-                   initial_placement='headquarters')
+                   initial_placement=spaces['headquarters'])
     }
 
     def __init__(self):
