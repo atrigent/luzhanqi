@@ -135,9 +135,9 @@ class LuzhanqiBoard:
                    defeats_sessile_bombs=True,
                    railroad_corners=True),
         'B': Piece('Bomb', 2, 2, bomb=True,
-                   initial_placement=('*', y[-5:])),
+                   initial_placement=('*', lambda y: y > 1)),
         'L': Piece('Landmine', 3, 1, sessile=True, bomb=True,
-                   initial_placement=('*', y[-2:])),
+                   initial_placement=('*', lambda y: y > 4)),
         'F': Piece('Flag', 1, 0, sessile=True, lose_on_defeat=True,
                    initial_placement=spaces['headquarters'])
     }
