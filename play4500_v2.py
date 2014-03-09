@@ -201,9 +201,8 @@ class LuzhanqiBoard:
             for new_position in product(*position_with_negatives(position)):
                 yield new_position
 
-    def _space_positions(self, space):
-        return _reflect_along_axes(('Y'), (key for key, val in board_spec
-                                               if val == spec))
+    def _space_positions(self, space, positions):
+        return filter(lambda position: self._position_spec(position) == space, positions)
 
     def _positions_matching(self, spec):
         matches = (axis.match(axis_range) for axis, axis_range in zip(axes, spec))
