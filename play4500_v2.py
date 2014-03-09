@@ -17,6 +17,16 @@ def namedtuple_with_defaults(typename, *args, **kwargs):
     T.__new__.__defaults__ = defaults
     return T
 
+def match(val, matchval):
+    if matchval == '*':
+        return True
+    elif callable(matchval):
+        return matchval(val)
+    elif isinstance(matchval, list):
+        return val in matchval
+    else:
+        raise ValueError()
+
 def coordtuple(name, axes):
     fields = [axis.symbol for axis in axes]
 
@@ -80,18 +90,9 @@ class CenteredOriginAxis:
         else:
             raise TypeError()
 
-    def has_all(self, vals):
-        return any(val not in self for val in vals)
-
     def match(self, matchval):
-        if matchval == '*':
-            return list(self)
-        elif callable(matchval):
-            return [val for val in self if matchval(val)]
-        elif self.has_all(matchval):
-            return matchval
-        else:
-            raise ValueError()
+        return (component for component in self
+                          if match(component, matchval))
 
 class LuzhanqiBoard:
     Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
