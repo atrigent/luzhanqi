@@ -138,6 +138,24 @@ class CoordinateSystem:
             for new_coord in product(*component_values(coord)):
                 yield self.Coord(*new_coord)
 
+class CoordinateSystemState:
+    def __init__(self, system):
+        self.system = system
+
+        self.state = {
+            system.Coord(*components): None
+            for components in system.coords_matching('*', '*')
+        }
+
+    def __getitem__(self, position):
+        return self.state[position]
+
+    def __setitem__(self, position, value):
+        if position not in self.state:
+            raise KeyError()
+
+        self.state[position] = value
+
 class LuzhanqiBoard:
     Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
                                      diagonals=False, quagmire=False)
@@ -203,10 +221,7 @@ class LuzhanqiBoard:
     }
 
     def __init__(self):
-        self.board_state = {
-            Coord(*components): None
-            for components in self.system.coords_matching('*', '*')
-        }
+        self.board = CoordinateSystemState(self.system)
 
     def _initial_piece_counts():
         return {key: val.initial_count for key, val in pieces.items()}
