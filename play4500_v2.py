@@ -186,6 +186,9 @@ class LuzhanqiBoard:
     def _initial_piece_counts():
         return {key: val.initial_count for key, val in pieces.items()}
 
+    def _position_spec(self, position):
+        return self.board_spec[abs(position)]
+
     def _reflect_along_axes(reflection_axes, positions):
         def position_with_negatives(position):
             for axis, component in zip(axes, position):
