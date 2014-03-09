@@ -118,7 +118,7 @@ class LuzhanqiBoard:
         Coord(1, 6): spaces['headquarters']
     })
 
-    Piece = namedtuple_with_defaults('Piece', 'name', 'initial_count', 'placement_step',
+    Piece = namedtuple_with_defaults('Piece', 'name', 'initial_count',
                                      order=None, sessile=False, bomb=False,
                                      defeats_sessile_bombs=False,
                                      railroad_corners=False,
@@ -127,24 +127,40 @@ class LuzhanqiBoard:
                                      lose_on_defeat=False)
     # initial_counts should add up to 25
     pieces = {
-        '9': Piece('Field Marshal', 1, 3, order=9,
+        '9': Piece('Field Marshal', 1, order=9,
                    reveal_flag_on_defeat=True),
-        '8': Piece('General', 1, 3, order=8),
-        '7': Piece('Lieutenant General', 2, 3, order=7),
-        '6': Piece('Brigadier General', 2, 3, order=6),
-        '5': Piece('Colonel', 2, 3, order=5),
-        '4': Piece('Major', 2, 3, order=4),
-        '3': Piece('Captain', 3, 3, order=3),
-        '2': Piece('Commander', 3, 3, order=2),
-        '1': Piece('Engineer', 3, 3, order=1,
+        '8': Piece('General', 1, order=8),
+        '7': Piece('Lieutenant General', 2, order=7),
+        '6': Piece('Brigadier General', 2, order=6),
+        '5': Piece('Colonel', 2, order=5),
+        '4': Piece('Major', 2, order=4),
+        '3': Piece('Captain', 3, order=3),
+        '2': Piece('Commander', 3, order=2),
+        '1': Piece('Engineer', 3, order=1,
                    defeats_sessile_bombs=True,
                    railroad_corners=True),
-        'B': Piece('Bomb', 2, 2, bomb=True,
+        'B': Piece('Bomb', 2, bomb=True,
                    initial_placement=('*', lambda y: y > 1)),
-        'L': Piece('Landmine', 3, 1, sessile=True, bomb=True,
+        'L': Piece('Landmine', 3, sessile=True, bomb=True,
                    initial_placement=('*', lambda y: y > 4)),
-        'F': Piece('Flag', 1, 0, sessile=True, lose_on_defeat=True,
+        'F': Piece('Flag', 1, sessile=True, lose_on_defeat=True,
                    initial_placement=spaces['headquarters'])
+    }
+
+    PieceStrategy = namedtuple_with_defaults('PieceStrategy', 'placement_step')
+    piece_strategies = {
+        pieces['9']: PieceStrategy(3),
+        pieces['8']: PieceStrategy(3),
+        pieces['7']: PieceStrategy(3),
+        pieces['6']: PieceStrategy(3),
+        pieces['5']: PieceStrategy(3),
+        pieces['4']: PieceStrategy(3),
+        pieces['3']: PieceStrategy(3),
+        pieces['2']: PieceStrategy(3),
+        pieces['1']: PieceStrategy(3),
+        pieces['B']: PieceStrategy(2),
+        pieces['L']: PieceStrategy(1),
+        pieces['F']: PieceStrategy(0)
     }
 
     def __init__(self):
@@ -177,14 +193,11 @@ class LuzhanqiBoard:
 
         return itertools.product(*matches)
 
-    def _do_initial_placement(self):
-        counts = _initial_piece_counts()
+    def _placement_steps(self):
+        keyfunc = lambda pair: pair[1].placement_step
 
-        keyfunc = lambda piece: piece.placement_step
-
-        for step, pieces in groupby(sorted(pieces.values(), keyfunc), keyfunc):
-            for piece in pieces:
-                positions = self._positions_matching(piece.initial_placement)
+        for step, pairs in groupby(sorted(self.piece_strategies.items(), key=keyfunc), keyfunc):
+            yield (piece for piece, strategy in pairs)
 
 
 
