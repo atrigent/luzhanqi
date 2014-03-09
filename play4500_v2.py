@@ -97,6 +97,14 @@ class CenteredOriginAxisBase:
         if i < abs_max:
             return i + 1
 
+    def __contains__(self, val):
+        if val == 0:
+            return self.num_vals % 2 != 0
+
+        abs_max = self.num_vals // 2
+
+        return val in range(-abs_max, abs_max + 1)
+
     def match(self, matchval):
         return (component for component in self
                           if match(component, matchval))
