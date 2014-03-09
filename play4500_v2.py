@@ -47,6 +47,10 @@ def coordtuple(name, axes):
         def __neg__(self):
             return self._map_vals(lambda val: -val)
 
+        def match(self, spec):
+            return all(match(component, matchval)
+                       for component, matchval in zip(self, spec))
+
     T.__name__ = name
 
     return T
