@@ -112,6 +112,32 @@ class CenteredOriginAxisBase:
 class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
     pass
 
+class CoordinateSystem:
+    def __init__(self, *axes):
+        self.axes = axes
+
+        self.Coord = coordtuple('Coord', axes)
+
+        for axis in axes:
+            setattr(self, axis.symbol, axis)
+
+    def coords_matching(self, *spec):
+        matches = (axis.match(axis_range) for axis, axis_range in zip(self.axes, spec))
+
+        return (self.Coord(*match) for match in product(*matches))
+
+    def map_coord_components(self, coords, **maps):
+        def component_values(coord):
+            for axis, component in zip(self.axes, coord):
+                if axis.symbol in maps:
+                    yield maps[axis.symbol](axis, component)
+                else:
+                    yield (component,)
+
+        for coord in coords:
+            for new_coord in product(*component_values(coord)):
+                yield self.Coord(*new_coord)
+
 class LuzhanqiBoard:
     Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
                                      diagonals=False, quagmire=False)
@@ -121,9 +147,8 @@ class LuzhanqiBoard:
         'headquarters': Space('Headquarters', quagmire=True)
     }
 
-    x, y = CenteredOriginAxis('x', 5), CenteredOriginAxis('y', 12)
-    axes = (x, y)
-    Coord = coordtuple('Coord', axes)
+    system = CoordinateSystem(CenteredOriginAxis('x', 5), CenteredOriginAxis('y', 12))
+    Coord = system.Coord
 
     board_spec = defaultdict(lambda: LuzhanqiBoard.spaces['station'], {
         Coord(1, 2): spaces['camp'],
@@ -180,7 +205,7 @@ class LuzhanqiBoard:
     def __init__(self):
         self.board_state = {
             Coord(*components): None
-            for components in self._positions_matching(('*', '*'))
+            for components in self.system.coords_matching('*', '*')
         }
 
     def _initial_piece_counts():
@@ -189,25 +214,8 @@ class LuzhanqiBoard:
     def _position_spec(self, position):
         return self.board_spec[abs(position)]
 
-    def _reflect_along_axes(reflection_axes, positions):
-        def position_with_negatives(position):
-            for axis, component in zip(axes, position):
-                if axis.symbol in reflection_axes:
-                    yield (component, -component)
-                else:
-                    yield (component,)
-
-        for position in positions:
-            for new_position in product(*position_with_negatives(position)):
-                yield new_position
-
     def _space_positions(self, space, positions):
         return filter(lambda position: self._position_spec(position) == space, positions)
-
-    def _positions_matching(self, spec):
-        matches = (axis.match(axis_range) for axis, axis_range in zip(axes, spec))
-
-        return product(*matches)
 
     def _placement_steps(self):
         keyfunc = lambda pair: pair[1].placement_step
