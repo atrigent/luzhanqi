@@ -223,8 +223,8 @@ class LuzhanqiBoard:
     def __init__(self):
         self.board = CoordinateSystemState(self.system)
 
-    def _initial_piece_counts():
-        return {key: val.initial_count for key, val in pieces.items()}
+    def _initial_piece_counts(self):
+        return {key: val.initial_count for key, val in self.pieces.items()}
 
     def _position_spec(self, position):
         return self.board_spec[abs(position)]
