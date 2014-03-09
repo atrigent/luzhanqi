@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from collections import namedtuple, defaultdict
-import itertools
+from itertools import product, groupby
 
 def namedtuple_with_defaults(typename, *args, **kwargs):
     extra_args = {}
@@ -191,7 +191,7 @@ class LuzhanqiBoard:
     def _positions_matching(self, spec):
         matches = (axis.match(axis_range) for axis, axis_range in zip(axes, spec))
 
-        return itertools.product(*matches)
+        return product(*matches)
 
     def _placement_steps(self):
         keyfunc = lambda pair: pair[1].placement_step
