@@ -55,7 +55,21 @@ def coordtuple(name, axes):
 
     return T
 
-class CenteredOriginAxis:
+class SequenceMixin:
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if -len(self) <= key <= -1:
+                key = len(self) + key
+            elif key < 0:
+                raise IndexError()
+
+            return super().__getitem__(key)
+        elif isinstance(key, slice):
+            return [self[i] for i in range(*key.indices(len(self)))]
+        else:
+            raise TypeError()
+
+class CenteredOriginAxisBase:
     def __init__(self, symbol, num_vals):
         self.symbol = symbol
         self.num_vals = num_vals
@@ -63,14 +77,11 @@ class CenteredOriginAxis:
     def __len__(self):
         return self.num_vals
 
-    def __getitem__int(self, i):
-        abs_max = self.num_vals // 2
-
-        if not -self.num_vals <= i < self.num_vals:
+    def __getitem__(self, i):
+        if not 0 <= i < self.num_vals:
             raise IndexError()
 
-        if i < 0:
-            i = self.num_vals + i
+        abs_max = self.num_vals // 2
 
         if i < abs_max:
             return -abs_max + i
@@ -86,17 +97,12 @@ class CenteredOriginAxis:
         if i < abs_max:
             return i + 1
 
-    def __getitem__(self, key):
-        if isinstance(key, int):
-            return self.__getitem__int(key)
-        elif isinstance(key, slice):
-            return [self[i] for i in range(*key.indices(self.num_vals))]
-        else:
-            raise TypeError()
-
     def match(self, matchval):
         return (component for component in self
                           if match(component, matchval))
+
+class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
+    pass
 
 class LuzhanqiBoard:
     Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
