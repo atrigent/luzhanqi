@@ -100,11 +100,11 @@ class CenteredOriginAxis:
 
 class LuzhanqiBoard:
     Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
-                                     diagonals=None, nondiagonals=None, quagmire=False)
+                                     diagonals=False, quagmire=False)
     spaces = {
-        'station': Space('Soldier Station', nondiagonals=True),
-        'camp': Space('Camp', safe=True, diagonals=True, nondiagonals=True, initial_placement=False),
-        'headquarters': Space('Headquarters', nondiagonals=True, quagmire=True)
+        'station': Space('Soldier Station'),
+        'camp': Space('Camp', safe=True, diagonals=True, initial_placement=False),
+        'headquarters': Space('Headquarters', quagmire=True)
     }
 
     x, y = CenteredOriginAxis('x', 5), CenteredOriginAxis('y', 12)
