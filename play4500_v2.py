@@ -265,6 +265,12 @@ class LuzhanqiBoard:
             self.initial = initial
             self.spec = spec
 
+        def __hash__(self):
+            return hash(self.initial)
+
+        def __eq__(self, other):
+            return self.initial == other.initial
+
         @property
         def friendly(self):
             return self.initial.y > 0
@@ -287,6 +293,12 @@ class LuzhanqiBoard:
 
     def __init__(self):
         self.board = CoordinateSystemState(self.system)
+
+        self.friendly_pieces = set()
+        self.friendly_pieces_dead = set()
+
+        self.enemy_pieces = set()
+        self.enemy_pieces_dead = set()
 
     def _initial_piece_counts(self):
         return {key: val.initial_count for key, val in self.pieces.items()}
@@ -345,7 +357,9 @@ class LuzhanqiBoard:
 
                 chosen = choices[:piece.initial_count]
                 for choice in chosen:
-                    self.board[choice] = self.BoardPiece(choice, piece)
+                    new_piece = self.BoardPiece(choice, piece)
+                    self.friendly_pieces.add(new_piece)
+                    self.board[choice] = new_piece
 
                 positions -= set(chosen)
 
@@ -353,7 +367,9 @@ class LuzhanqiBoard:
         self._do_initial_placement()
 
         for position in self._initial_enemy_positions():
-            self.board[position] = self.BoardPiece(position)
+            new_piece = self.BoardPiece(position)
+            self.enemy_pieces.add(new_piece)
+            self.board[position] = new_piece
 
 
 
