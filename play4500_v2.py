@@ -141,6 +141,15 @@ class CenteredOriginAxisBase:
         else:
             return val, -val
 
+    def reflection(self, val):
+        if val not in self:
+            raise ValueError()
+
+        if val == 0:
+            return (val,)
+        else:
+            return (-val,)
+
 class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
     pass
 
@@ -288,6 +297,12 @@ class LuzhanqiBoard:
 
         x_map = lambda axis, x: axis.original_and_reflection(x)
         return self.system.map_coord_components(absolutes, x=x_map)
+
+    def _initial_enemy_positions(self):
+        initials = self._initial_positions()
+
+        y_reflect = lambda axis, y: axis.reflection(y)
+        return self.system.map_coord_components(initials, y=y_reflect)
 
     def _placement_steps(self):
         keyfunc = lambda pair: pair[1].placement_step
