@@ -105,6 +105,23 @@ class CenteredOriginAxisBase:
 
         return val in range(-abs_max, abs_max + 1)
 
+    def index(self, val):
+        if val not in self:
+            raise ValueError()
+
+        abs_max = self.num_vals // 2
+
+        if val == 0:
+            return abs_max
+        elif val < 0:
+            return abs_max + val
+        else:
+            ret = abs_max + val
+            if 0 not in self:
+                ret -= 1
+
+            return ret
+
     def match(self, matchval):
         return (component for component in self
                           if match(component, matchval))
