@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from collections import namedtuple, defaultdict
 from itertools import product, groupby
+import random
 
 def namedtuple_with_defaults(typename, *args, **kwargs):
     extra_args = {}
@@ -259,6 +260,15 @@ class LuzhanqiBoard:
                    initial_placement=spaces['headquarters'])
     }
 
+    class BoardPiece:
+        def __init__(self, initial, spec=None):
+            self.initial = initial
+            self.spec = spec
+
+        @property
+        def friendly(self):
+            return self.initial.y > 0
+
     PieceStrategy = namedtuple_with_defaults('PieceStrategy', 'placement_step')
     piece_strategies = {
         pieces['9']: PieceStrategy(3),
@@ -312,9 +322,38 @@ class LuzhanqiBoard:
                                    keyfunc):
             yield (piece for piece, strategy in pairs)
 
+    def _do_initial_placement(self):
+        positions = set(self._initial_positions())
 
+        for step in self._placement_steps():
+            for piece in step:
+                placement = piece.initial_placement
+                choices = positions
 
+                if placement is not None:
+                    if isinstance(placement, self.Space):
+                        choices = self._space_positions(placement, positions)
+                    else:
+                        choices = (position for position in positions
+                                            if position.match(placement))
 
+                choices = list(choices)
+                if len(choices) < piece.initial_count:
+                    raise RuntimeError("Not enough choices to place piece!")
+
+                random.shuffle(choices)
+
+                chosen = choices[:piece.initial_count]
+                for choice in chosen:
+                    self.board[choice] = self.BoardPiece(choice, piece)
+
+                positions -= set(chosen)
+
+    def setup(self):
+        self._do_initial_placement()
+
+        for position in self._initial_enemy_positions():
+            self.board[position] = self.BoardPiece(position)
 
 
 
