@@ -185,7 +185,7 @@ class LuzhanqiBoard:
         Coord(1, 6): spaces['headquarters']
     })
 
-    Piece = namedtuple_with_defaults('Piece', 'name', 'initial_count',
+    Piece = namedtuple_with_defaults('Piece', 'name', 'symbol', 'initial_count',
                                      order=None, sessile=False, bomb=False,
                                      defeats_sessile_bombs=False,
                                      railroad_corners=False,
@@ -194,23 +194,23 @@ class LuzhanqiBoard:
                                      lose_on_defeat=False)
     # initial_counts should add up to 25
     pieces = {
-        '9': Piece('Field Marshal', 1, order=9,
+        '9': Piece('Field Marshal', '9', 1, order=9,
                    reveal_flag_on_defeat=True),
-        '8': Piece('General', 1, order=8),
-        '7': Piece('Lieutenant General', 2, order=7),
-        '6': Piece('Brigadier General', 2, order=6),
-        '5': Piece('Colonel', 2, order=5),
-        '4': Piece('Major', 2, order=4),
-        '3': Piece('Captain', 3, order=3),
-        '2': Piece('Commander', 3, order=2),
-        '1': Piece('Engineer', 3, order=1,
+        '8': Piece('General', '8', 1, order=8),
+        '7': Piece('Lieutenant General', '7', 2, order=7),
+        '6': Piece('Brigadier General', '6', 2, order=6),
+        '5': Piece('Colonel', '5', 2, order=5),
+        '4': Piece('Major', '4', 2, order=4),
+        '3': Piece('Captain', '3', 3, order=3),
+        '2': Piece('Commander', '2', 3, order=2),
+        '1': Piece('Engineer', '1', 3, order=1,
                    defeats_sessile_bombs=True,
                    railroad_corners=True),
-        'B': Piece('Bomb', 2, bomb=True,
+        'B': Piece('Bomb', 'B', 2, bomb=True,
                    initial_placement=('*', lambda y: y > 1)),
-        'L': Piece('Landmine', 3, sessile=True, bomb=True,
+        'L': Piece('Landmine', 'L', 3, sessile=True, bomb=True,
                    initial_placement=('*', lambda y: y > 4)),
-        'F': Piece('Flag', 1, sessile=True, lose_on_defeat=True,
+        'F': Piece('Flag', 'F', 1, sessile=True, lose_on_defeat=True,
                    initial_placement=spaces['headquarters'])
     }
 
