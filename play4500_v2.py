@@ -27,7 +27,7 @@ def match(val, matchval):
     else:
         raise ValueError()
 
-def coordtuple(name, axes):
+def coordtuple(name, axes, strfunc=None):
     fields = [axis.symbol for axis in axes]
 
     class T(namedtuple(name, fields)):
@@ -46,6 +46,12 @@ def coordtuple(name, axes):
 
         def __neg__(self):
             return self._map_vals(lambda val: -val)
+
+        def __str__(self):
+            if strfunc is not None:
+                return strfunc(*zip(axes, self))
+            else:
+                return super().__str__()
 
         def match(self, spec):
             return all(match(component, matchval)
@@ -139,10 +145,10 @@ class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
     pass
 
 class CoordinateSystem:
-    def __init__(self, *axes):
+    def __init__(self, *axes, strfunc=None):
         self.axes = axes
 
-        self.Coord = coordtuple('Coord', axes)
+        self.Coord = coordtuple('Coord', axes, strfunc)
 
         for axis in axes:
             setattr(self, axis.symbol, axis)
@@ -194,8 +200,18 @@ class LuzhanqiBoard:
         'headquarters': Space('Headquarters', quagmire=True)
     }
 
+    def stringify_coord(x, y):
+        xaxis, xval = x
+        xstr = chr(ord('A') + xaxis.index(xval))
+
+        yaxis, yval = y
+        ystr = str(yaxis.index(yval) + 1)
+
+        return xstr + ystr
+
     system = CoordinateSystem(CenteredOriginAxis('x', 5),
-                              CenteredOriginAxis('y', 12))
+                              CenteredOriginAxis('y', 12),
+                              strfunc=stringify_coord)
     Coord = system.Coord
 
     board_spec = defaultdict(lambda: LuzhanqiBoard.spaces['station'], {
