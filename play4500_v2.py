@@ -130,7 +130,10 @@ class CenteredOriginAxisBase:
         if val not in self:
             raise ValueError()
 
-        return val, -val
+        if val == 0:
+            return (val,)
+        else:
+            return val, -val
 
 class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
     pass
