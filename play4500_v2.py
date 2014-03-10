@@ -109,6 +109,12 @@ class CenteredOriginAxisBase:
         return (component for component in self
                           if match(component, matchval))
 
+    def original_and_reflection(self, val):
+        if val not in self:
+            raise ValueError()
+
+        return val, -val
+
 class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
     pass
 
@@ -231,6 +237,16 @@ class LuzhanqiBoard:
 
     def _space_positions(self, space, positions):
         return filter(lambda position: self._position_spec(position) == space, positions)
+
+    def _initial_positions(self):
+        nonneg = lambda i: i >= 0
+
+        absolutes = (position
+                     for position in self.system.coords_matching(nonneg, nonneg)
+                     if self._position_spec(position).initial_placement)
+
+        x_map = lambda axis, x: axis.original_and_reflection(x)
+        return self.system.map_coord_components(absolutes, x=x_map)
 
     def _placement_steps(self):
         keyfunc = lambda pair: pair[1].placement_step
