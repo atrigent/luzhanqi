@@ -128,7 +128,8 @@ class CoordinateSystem:
             setattr(self, axis.symbol, axis)
 
     def coords_matching(self, *spec):
-        matches = (axis.match(axis_range) for axis, axis_range in zip(self.axes, spec))
+        matches = (axis.match(axis_range)
+                   for axis, axis_range in zip(self.axes, spec))
 
         return (self.Coord(*match) for match in product(*matches))
 
@@ -163,15 +164,18 @@ class CoordinateSystemState:
         self.state[position] = value
 
 class LuzhanqiBoard:
-    Space = namedtuple_with_defaults('Space', 'name', initial_placement=True, safe=False, 
+    Space = namedtuple_with_defaults('Space', 'name',
+                                     initial_placement=True, safe=False,
                                      diagonals=False, quagmire=False)
     spaces = {
         'station': Space('Soldier Station'),
-        'camp': Space('Camp', safe=True, diagonals=True, initial_placement=False),
+        'camp': Space('Camp', safe=True, diagonals=True,
+                              initial_placement=False),
         'headquarters': Space('Headquarters', quagmire=True)
     }
 
-    system = CoordinateSystem(CenteredOriginAxis('x', 5), CenteredOriginAxis('y', 12))
+    system = CoordinateSystem(CenteredOriginAxis('x', 5),
+                              CenteredOriginAxis('y', 12))
     Coord = system.Coord
 
     board_spec = defaultdict(lambda: LuzhanqiBoard.spaces['station'], {
@@ -236,7 +240,8 @@ class LuzhanqiBoard:
         return self.board_spec[abs(position)]
 
     def _space_positions(self, space, positions):
-        return filter(lambda position: self._position_spec(position) == space, positions)
+        return filter(lambda position: self._position_spec(position) == space,
+                      positions)
 
     def _initial_positions(self):
         nonneg = lambda i: i >= 0
@@ -251,7 +256,9 @@ class LuzhanqiBoard:
     def _placement_steps(self):
         keyfunc = lambda pair: pair[1].placement_step
 
-        for step, pairs in groupby(sorted(self.piece_strategies.items(), key=keyfunc), keyfunc):
+        for step, pairs in groupby(sorted(self.piece_strategies.items(),
+                                          key=keyfunc),
+                                   keyfunc):
             yield (piece for piece, strategy in pairs)
 
 
