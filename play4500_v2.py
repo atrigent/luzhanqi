@@ -88,7 +88,7 @@ class CenteredOriginAxisBase:
 
         i -= abs_max
 
-        if self.num_vals % 2 != 0:
+        if 0 in self:
             if i == 0:
                 return 0
 
