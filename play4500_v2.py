@@ -371,5 +371,14 @@ class LuzhanqiBoard:
             self.enemy_pieces.add(new_piece)
             self.board[position] = new_piece
 
+    def get_living_pieces(self):
+        return self.friendly_pieces
 
+if __name__ == '__main__':
+    game = LuzhanqiBoard()
+    game.setup()
 
+    print('(' +
+          ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)
+                   for piece in game.get_living_pieces()) +
+          ')')
