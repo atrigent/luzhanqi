@@ -1,8 +1,9 @@
-#! /usr/bin/python
+#! /usr/bin/python3
 
 import argparse
 import re
 
+from luzhanqi import LuzhanqiBoard
 
 # Time Regex: ^(\d+)(?:\.(\d+))?(s|ms)$
 # Starts with one or more digits. May be followed by a decimal point ('.')
@@ -64,21 +65,13 @@ if __name__ == '__main__':
     # If init_argparser() returns, the command line arguments were correct
     player, time = init_argparser()
 
-    # Initial map
-    # (
-    #     ( A1 1 ) ( B1 F ) ( C1 2 ) ( D1 L ) ( E1 5 )
-    #     ( A2 L ) ( B2 4 ) ( C2 7 ) ( D2 6 ) ( E2 L )
-    #     ( A3 1 ) ( C3 6 ) ( E3 1 )
-    #     ( A4 7 ) ( B4 B ) ( D4 B ) ( E4 3 )
-    #     ( A5 2 ) ( C5 3 ) ( E5 5 )
-    #     ( A6 8 ) ( B6 4 ) ( C6 9 ) ( D6 2 ) ( E6 3 )
-    # )
+    game = LuzhanqiBoard()
+    game.setup()
 
-    print '( ( A1 1 ) ( B1 F ) ( C1 2 ) ( D1 L ) ( E1 5 ) ' + \
-            '( A2 L ) ( B2 4 ) ( C2 7 ) ( D2 6 ) ( E2 L ) ' + \
-            '( A3 1 ) ( C3 6 ) ( E3 1 ) ' + \
-            '( A4 7 ) ( B4 B ) ( D4 B ) ( E4 3 ) ' + \
-            '( A5 2 ) ( C5 3 ) ( E5 5 ) ' + \
-            '( A6 8 ) ( B6 4 ) ( C6 9 ) ( D6 2 ) ( E6 3 ) )'
+    print('(' +
+          ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)
+                   for piece in game.get_living_pieces()) +
+          ')')
+
     if player == 1:
-        print '( A6 A7 )'
+        print('( A6 A7 )')
