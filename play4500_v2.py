@@ -179,7 +179,10 @@ class CoordinateSystem:
 
         for coord in coords:
             for new_coord in product(*component_values(coord)):
-                yield self.Coord(*new_coord)
+                try:
+                    yield self.Coord(*new_coord)
+                except ValueError:
+                    pass
 
 class CoordinateSystemState:
     def __init__(self, system):
