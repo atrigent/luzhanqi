@@ -184,6 +184,12 @@ class CoordinateSystem:
                 except ValueError:
                     pass
 
+    def map_coord_components_separately(self, coords, **maps):
+        for symbol in maps:
+            for coord in self.map_coord_components(coords,
+                                                   **{symbol: maps[symbol]}):
+                yield coord
+
 class CoordinateSystemState:
     def __init__(self, system):
         self.system = system
