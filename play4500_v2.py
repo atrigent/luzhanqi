@@ -279,7 +279,24 @@ class LuzhanqiBoard:
         def __eq__(self, other):
             return self.initial == other.initial
 
+        def _fatal_event(self, event):
+            if event.attack is None:
+                return None
+
+            if event.piece is self:
+                safe_outcome = 'win'
+            elif event.attack.piece is self:
+                safe_outcome = 'loss'
+            else:
+                return None
+
+            return event.attack.outcome != safe_outcome
+
         def add_event(self, event):
+            if self.dead:
+                raise RuntimeError('This piece is dead - nothing further '
+                                   'can happen to it')
+
             if event.piece is self:
                 self.movements.append(event)
             elif event.attack is not None and event.attack.piece is self:
@@ -298,7 +315,17 @@ class LuzhanqiBoard:
             return self.initial.y > 0
 
         @property
+        def dead(self):
+            if len(self.events) == 0:
+                return False
+
+            return bool(self._fatal_event(self.events[-1]))
+
+        @property
         def position(self):
+            if self.dead:
+                return None
+
             return self.movements[-1].end
 
     PieceStrategy = namedtuple_with_defaults('PieceStrategy', 'placement_step')
