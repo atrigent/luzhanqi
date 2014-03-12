@@ -260,16 +260,38 @@ class LuzhanqiBoard:
                    initial_placement=spaces['headquarters'])
     }
 
+    AttackInfo = namedtuple('AttackInfo', 'piece outcome')
+    Movement = namedtuple_with_defaults('Movement', 'start', 'end',
+                                        'piece', 'turn', attack=None)
+
     class BoardPiece:
         def __init__(self, initial, spec=None):
-            self.initial = initial
+            self.events = []
+            self.movements = []
+            self.attacks = []
             self.spec = spec
+
+            self.add_event(LuzhanqiBoard.Movement(None, initial, self, 0))
 
         def __hash__(self):
             return hash(self.initial)
 
         def __eq__(self, other):
             return self.initial == other.initial
+
+        def add_event(self, event):
+            if event.piece is self:
+                self.movements.append(event)
+            elif event.attack is not None and event.attack.piece is self:
+                self.attacks.append(event)
+            else:
+                raise RuntimeError('This event is not relevant to this piece')
+
+            self.events.append(event)
+
+        @property
+        def initial(self):
+            return self.movements[0].end
 
         @property
         def friendly(self):
