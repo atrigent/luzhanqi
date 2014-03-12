@@ -297,6 +297,10 @@ class LuzhanqiBoard:
         def friendly(self):
             return self.initial.y > 0
 
+        @property
+        def position(self):
+            return self.movements[-1].end
+
     PieceStrategy = namedtuple_with_defaults('PieceStrategy', 'placement_step')
     piece_strategies = {
         pieces['9']: PieceStrategy(3),
