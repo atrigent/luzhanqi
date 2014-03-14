@@ -114,6 +114,17 @@ class BoardPiece:
 
         return self.movements[-1].end
 
+    @property
+    def died_at(self):
+        if not self.dead:
+            return None
+
+        last_move = self.movements[-1]
+        if self._fatal_event(last_move):
+            return last_move.start
+        else:
+            return last_move.end
+
 class LuzhanqiBoard:
     spaces = {
         'station': Space('Soldier Station'),
