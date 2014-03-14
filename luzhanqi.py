@@ -294,6 +294,10 @@ class LuzhanqiBoard:
 
         return True
 
+    def _railroad_moves(self, piece):
+        if abs(piece.position).match(((0, 2), 1)):
+            yield self.Coord(piece.position.x, -piece.position.y)
+
     def _valid_moves_for_piece(self, piece):
         position = piece.position
 
@@ -313,6 +317,8 @@ class LuzhanqiBoard:
         else:
             valid_moves |= {diagonal for diagonal in diagonals
                                      if self._position_spec(diagonal).diagonals}
+
+        valid_moves |= set(self._railroad_moves(piece))
 
         valid_moves = {move for move in valid_moves
                             if self._verify_attack(piece, move)}
@@ -347,6 +353,9 @@ class LuzhanqiBoard:
         if (all(abs(start - end) == 1 for start, end in zip(start, end)) and
             (self._position_spec(start).diagonals or
              self._position_spec(end).diagonals)):
+            return True
+
+        if end in self._railroad_moves(piece):
             return True
 
         return False
