@@ -21,22 +21,40 @@ Piece = namedtuple_with_defaults('Piece', 'name', 'symbol', 'initial_count',
 PieceStrategy = namedtuple_with_defaults('PieceStrategy', 'placement_step')
 
 AttackInfo = namedtuple('AttackInfo', 'piece outcome')
-Movement = namedtuple_with_defaults('Movement', 'start', 'end',
-                                    'piece', 'turn', attack=None)
+
+class Movement:
+    def __init__(self, board, piece, end, outcome=None):
+        self.board = board
+        self.piece = piece
+        self.start = piece.position
+        self.end = end
+
+        end_piece = board.get(end)
+        if end_piece is not None:
+            self.attack = AttackInfo(end_piece, outcome)
+        else:
+            if outcome is not None:
+                raise ValueError('This is not an attack!')
+
+            self.attack = None
 
 class BoardPiece:
-    def __init__(self, initial, spec=None):
+    def __init__(self, spec=None):
         self.events = []
         self.movements = []
         self.attacks = []
         self.spec = spec
 
-        self.add_event(Movement(None, initial, self, 0))
-
     def __hash__(self):
+        if self.initial is None:
+            raise TypeError()
+
         return hash(self.initial)
 
     def __eq__(self, other):
+        if self.initial is None:
+            return False
+
         return self.initial == other.initial
 
     def _fatal_event(self, event):
@@ -68,11 +86,14 @@ class BoardPiece:
 
     @property
     def initial(self):
+        if len(self.movements) == 0:
+            return None
+
         return self.movements[0].end
 
     @property
     def friendly(self):
-        return self.initial.y > 0
+        return self.spec is not None
 
     @property
     def dead(self):
@@ -83,7 +104,7 @@ class BoardPiece:
 
     @property
     def position(self):
-        if self.dead:
+        if self.dead or not self.initial:
             return None
 
         return self.movements[-1].end
@@ -220,7 +241,8 @@ class LuzhanqiBoard:
 
                 chosen = choices[:piece.initial_count]
                 for choice in chosen:
-                    new_piece = BoardPiece(choice, piece)
+                    new_piece = BoardPiece(piece)
+                    new_piece.add_event(Movement(self, new_piece, choice))
                     self.friendly_pieces.add(new_piece)
                     self.board[choice] = new_piece
 
@@ -230,7 +252,8 @@ class LuzhanqiBoard:
         self._do_initial_placement()
 
         for position in self._initial_enemy_positions():
-            new_piece = BoardPiece(position)
+            new_piece = BoardPiece()
+            new_piece.add_event(Movement(self, new_piece, position))
             self.enemy_pieces.add(new_piece)
             self.board[position] = new_piece
 
