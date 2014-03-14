@@ -20,10 +20,13 @@ def match(val, matchval):
         return True
     elif callable(matchval):
         return matchval(val)
-    elif isinstance(matchval, list):
+
+    try:
         return val in matchval
-    else:
-        return val == matchval
+    except Exception:
+        pass
+
+    return val == matchval
 
 class SequenceMixin:
     def __getitem__(self, key):
