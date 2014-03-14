@@ -387,6 +387,29 @@ class LuzhanqiBoard:
 
                 positions -= set(chosen)
 
+    def _check_pulse(self, piece):
+        if not piece.dead:
+            return
+
+        self.board[piece.died_at] = None
+
+        if piece.friendly:
+            living_set = self.friendly_pieces
+            dead_set = self.friendly_pieces_dead
+        else:
+            living_set = self.enemy_pieces
+            dead_set = self.enemy_pieces_dead
+
+        living_set.remove(piece)
+        dead_set.add(piece)
+
+    def _move_on_board(self, movement):
+        if self.board[movement.end] is not None:
+            raise RuntimeError('Cannot move onto an occupied space')
+
+        self.board[movement.start] = None
+        self.board[movement.end] = movement.piece
+
     def setup(self):
         if self.turn != 0:
             raise RuntimeError('Cannot setup while a game is in progress!')
@@ -411,3 +434,20 @@ class LuzhanqiBoard:
 
     def get(self, position):
         return self.board[position]
+
+    def add_move(self, movement):
+        moved = movement.piece
+        attacked = movement.attack.piece if movement.attack else None
+
+        moved.add_event(movement)
+
+        if attacked is not None:
+            attacked.add_event(movement)
+
+            self._check_pulse(moved)
+            self._check_pulse(attacked)
+
+        if not moved.dead:
+            self._move_on_board(movement)
+
+        self.turn += 1
