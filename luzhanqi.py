@@ -28,6 +28,10 @@ class Movement:
         self.piece = piece
         self.start = piece.position
         self.end = end
+        self.turn = board.turn
+
+        if (self.start is None) != (self.turn == 0):
+            raise ValueError()
 
         end_piece = board.get(end)
         if end_piece is not None:
@@ -184,6 +188,8 @@ class LuzhanqiBoard:
         self.enemy_pieces = set()
         self.enemy_pieces_dead = set()
 
+        self.turn = 0
+
     def _initial_piece_counts(self):
         return {key: val.initial_count for key, val in self.pieces.items()}
 
@@ -249,6 +255,9 @@ class LuzhanqiBoard:
                 positions -= set(chosen)
 
     def setup(self):
+        if self.turn != 0:
+            raise RuntimeError('Cannot setup while a game is in progress!')
+
         self._do_initial_placement()
 
         for position in self._initial_enemy_positions():
@@ -256,6 +265,8 @@ class LuzhanqiBoard:
             new_piece.add_event(Movement(self, new_piece, position))
             self.enemy_pieces.add(new_piece)
             self.board[position] = new_piece
+
+        self.turn = 1
 
     def get_living_pieces(self):
         return self.friendly_pieces
