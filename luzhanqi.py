@@ -43,6 +43,32 @@ class Movement:
 
             self.attack = None
 
+    def __str__(self):
+        return '({0} {1})'.format(self.start, self.end)
+
+    movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+(move|win|loss|tie)\s*$')
+
+    @classmethod
+    def from_string(cls, board, move):
+        move_match = cls.movement_re.match(move)
+
+        if move_match is None:
+            return None
+
+        start, end, player, outcome = move_match.group(1, 2, 3, 4)
+        start = LuzhanqiBoard.Coord.from_string(start)
+        end = LuzhanqiBoard.Coord.from_string(end)
+        player = int(player)
+
+        if outcome == 'move':
+            outcome = None
+
+        piece = board.get(start)
+        if piece is None:
+            return None
+
+        return Movement(board, board.get(start), end, outcome)
+
 class BoardPiece:
     def __init__(self, spec=None):
         self.events = []
