@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
 import argparse
+import random
 import re
 
 from luzhanqi import LuzhanqiBoard
@@ -68,10 +69,15 @@ if __name__ == '__main__':
     game = LuzhanqiBoard()
     game.setup()
 
+    def do_move():
+        moves = set(game.valid_moves())
+        move = random.sample(moves, 1)[0]
+        print(move)
+
     print('(' +
           ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)
                    for piece in game.get_living_pieces()) +
           ')')
 
     if player == 1:
-        print('( A6 A7 )')
+        do_move()
