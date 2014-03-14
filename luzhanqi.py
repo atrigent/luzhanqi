@@ -1,6 +1,7 @@
 from collections import namedtuple, defaultdict
 from itertools import groupby
 import random
+import re
 
 from misc import namedtuple_with_defaults
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
@@ -130,9 +131,25 @@ class LuzhanqiBoard:
 
         return xstr + ystr
 
+    coord_regex = re.compile('^([A-E])(\d{1,2})$')
+    def parse_coord(coord):
+        coord_match = LuzhanqiBoard.coord_regex.match(coord)
+
+        if coord_match is None:
+            return None
+
+        x, y = coord_match.group(1, 2)
+
+        system = LuzhanqiBoard.system
+        x = system.x[ord(x) - ord('A')]
+        y = system.y[-int(y)]
+
+        return system.Coord(x, y)
+
     system = CoordinateSystem(CenteredOriginAxis('x', 5),
                               CenteredOriginAxis('y', 12),
-                              strfunc=stringify_coord)
+                              strfunc=stringify_coord,
+                              parsefunc=parse_coord)
     Coord = system.Coord
 
     board_spec = defaultdict(lambda: LuzhanqiBoard.spaces['station'], {
