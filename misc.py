@@ -38,3 +38,15 @@ class SequenceMixin:
             return [self[i] for i in range(*key.indices(len(self)))]
         else:
             raise TypeError()
+
+def find_connected_component(vertex, f):
+    connections = set()
+
+    def iterate_connections(origin):
+        connections.add(origin)
+        for coord in f(origin):
+            if coord not in connections:
+                iterate_connections(coord)
+
+    iterate_connections(vertex)
+    return connections
