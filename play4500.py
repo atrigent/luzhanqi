@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 
 import argparse
+import atexit
 import random
 import sys
 import re
@@ -67,6 +68,11 @@ if __name__ == '__main__':
     # If init_argparser() returns, the command line arguments were correct
     player, time = init_argparser()
 
+    if False:
+        logfile = open('log.txt', mode='a')
+    else:
+        logfile = None
+
     game = LuzhanqiBoard()
     game.setup()
 
@@ -74,9 +80,20 @@ if __name__ == '__main__':
     flag_pos = re.compile('^F\s+(\w+)$')
     victory = re.compile('(1|2|No)\s+Victory')
 
+    def write(message):
+        message = str(message)
+        print(message)
+
+        if logfile:
+            logfile.write('sent: "' + message + '"\n')
+
     def receive_move():
         while True:
             message = input()
+
+            if logfile:
+                logfile.write('received: "' + message + '"\n')
+
             if invalid_move.match(message) or victory.match(message):
                 sys.exit()
 
@@ -88,14 +105,23 @@ if __name__ == '__main__':
                 game.add_move(move)
                 return
 
+            if logfile:
+                logfile.write('parsing failed for "' + message + '"\n')
+
     def do_move():
         moves = set(game.valid_moves())
         move = random.sample(moves, 1)[0]
-        print(move)
+        write(move)
 
         receive_move()
 
-    print('(' +
+    def mark():
+        if logfile:
+            logfile.write('---\n')
+
+    atexit.register(mark)
+
+    write('(' +
           ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)
                    for piece in game.get_living_pieces()) +
           ')')
