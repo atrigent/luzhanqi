@@ -126,7 +126,7 @@ class LuzhanqiBoard:
         xstr = chr(ord('A') + xaxis.index(xval))
 
         yaxis, yval = y
-        ystr = str(yaxis.index(yval) + 1)
+        ystr = str(len(yaxis) - yaxis.index(yval))
 
         return xstr + ystr
 
