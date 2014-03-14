@@ -2,9 +2,10 @@
 
 import argparse
 import random
+import sys
 import re
 
-from luzhanqi import LuzhanqiBoard
+from luzhanqi import LuzhanqiBoard, Movement
 
 # Time Regex: ^(\d+)(?:\.(\d+))?(s|ms)$
 # Starts with one or more digits. May be followed by a decimal point ('.')
@@ -69,10 +70,30 @@ if __name__ == '__main__':
     game = LuzhanqiBoard()
     game.setup()
 
+    invalid_move = re.compile('^Invalid\s+Board\s+Move\s+(.*)$')
+    flag_pos = re.compile('^F\s+(\w+)$')
+    victory = re.compile('(1|2|No)\s+Victory')
+
+    def receive_move():
+        while True:
+            message = input()
+            if invalid_move.match(message) or victory.match(message):
+                sys.exit()
+
+            if flag_pos.match(message):
+                continue
+
+            move = Movement.from_string(game, message)
+            if move is not None:
+                game.add_move(move)
+                return
+
     def do_move():
         moves = set(game.valid_moves())
         move = random.sample(moves, 1)[0]
         print(move)
+
+        receive_move()
 
     print('(' +
           ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)
