@@ -172,6 +172,6 @@ class CoordinateSystemState:
 
     def __setitem__(self, position, value):
         if position not in self.state:
-            raise KeyError()
+            raise KeyError(position)
 
         self.state[position] = value
