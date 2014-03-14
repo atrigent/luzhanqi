@@ -294,6 +294,31 @@ class LuzhanqiBoard:
 
         return True
 
+    def _valid_moves_for_piece(self, piece):
+        position = piece.position
+
+        if not self._can_move(piece):
+            return set()
+
+        either_side = lambda axis, i: (i - 1, i + 1)
+        valid_moves = set(self.system.map_coord_components_separately([position],
+                                                                      x=either_side,
+                                                                      y=either_side))
+
+        diagonals = set(self.system.map_coord_components([position],
+                                                         x=either_side,
+                                                         y=either_side))
+        if self._position_spec(position).diagonals:
+            valid_moves |= diagonals
+        else:
+            valid_moves |= {diagonal for diagonal in diagonals
+                                     if self._position_spec(diagonal).diagonals}
+
+        valid_moves = {move for move in valid_moves
+                            if self._verify_attack(piece, move)}
+
+        return valid_moves
+
     def verify_move(self, piece, end):
         start = piece.position
 
@@ -375,6 +400,11 @@ class LuzhanqiBoard:
             self.board[position] = new_piece
 
         self.turn = 1
+
+    def valid_moves(self):
+        for piece in self.friendly_pieces:
+            for move in self._valid_moves_for_piece(piece):
+               yield Movement(self, piece, move)
 
     def get_living_pieces(self):
         return self.friendly_pieces
