@@ -236,3 +236,6 @@ class LuzhanqiBoard:
 
     def get_living_pieces(self):
         return self.friendly_pieces
+
+    def get(self, position):
+        return self.board[position]
