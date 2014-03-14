@@ -23,7 +23,7 @@ def match(val, matchval):
     elif isinstance(matchval, list):
         return val in matchval
     else:
-        raise ValueError()
+        return val == matchval
 
 class SequenceMixin:
     def __getitem__(self, key):
