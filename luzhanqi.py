@@ -169,9 +169,11 @@ class LuzhanqiBoard:
     def _position_spec(self, position):
         return self.board_spec[abs(position)]
 
-    def _space_positions(self, space, positions):
-        return filter(lambda position: self._position_spec(position) == space,
-                      positions)
+    def _position_match(self, position, matchval):
+        if isinstance(matchval, Space):
+            return self._position_spec(position) == matchval
+        else:
+            return position.match(matchval)
 
     def _initial_positions(self):
         nonneg = lambda i: i >= 0
@@ -206,11 +208,9 @@ class LuzhanqiBoard:
                 choices = positions
 
                 if placement is not None:
-                    if isinstance(placement, Space):
-                        choices = self._space_positions(placement, positions)
-                    else:
-                        choices = (position for position in positions
-                                            if position.match(placement))
+                    choices = (position
+                               for position in positions
+                               if self._position_match(position, placement))
 
                 choices = list(choices)
                 if len(choices) < piece.initial_count:
