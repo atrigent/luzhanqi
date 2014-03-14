@@ -34,6 +34,9 @@ class Movement:
         if (self.start is None) != (self.turn == 0):
             raise ValueError()
 
+        if not self.board.verify_move(self.piece, self.end):
+            raise ValueError()
+
         end_piece = board.get(end)
         if end_piece is not None:
             self.attack = AttackInfo(end_piece, outcome)
@@ -271,6 +274,57 @@ class LuzhanqiBoard:
 
         y_reflect = lambda axis, y: axis.reflection(y)
         return self.system.map_coord_components(initials, y=y_reflect)
+
+    def _verify_attack(self, piece, end):
+        if self.board[end] is not None:
+            # no friendly fire and no attacking a safe space
+            return (piece.friendly != self.board[end].friendly and
+                    not self._position_spec(end).safe)
+
+        return True
+
+    def _can_move(self, piece):
+        # can't move a sessile piece
+        if piece.spec is not None and piece.spec.sessile:
+            return False
+
+        # can't move off a quagmire space
+        if self._position_spec(piece.position).quagmire:
+            return False
+
+        return True
+
+    def verify_move(self, piece, end):
+        start = piece.position
+
+        if start is None:
+            if self.board[end] is not None:
+                return False
+
+            if not self._position_spec(end).initial_placement:
+                return False
+
+            if piece.spec and piece.spec.initial_placement:
+                return self._position_match(end, piece.spec.initial_placement)
+
+            return True
+
+        if (start == end or
+            not self._can_move(piece) or
+            not self._verify_attack(piece, end)):
+            return False
+
+        # horizontal/vertical move
+        if sum(abs(start - end) for start, end in zip(start, end)) == 1:
+            return True
+
+        # diagonal move
+        if (all(abs(start - end) == 1 for start, end in zip(start, end)) and
+            (self._position_spec(start).diagonals or
+             self._position_spec(end).diagonals)):
+            return True
+
+        return False
 
     def _placement_steps(self):
         keyfunc = lambda pair: pair[1].placement_step
