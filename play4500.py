@@ -102,3 +102,7 @@ if __name__ == '__main__':
 
     if player == 1:
         do_move()
+
+    while True:
+        receive_move()
+        do_move()
