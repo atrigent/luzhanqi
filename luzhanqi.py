@@ -49,7 +49,7 @@ class Movement:
     def __str__(self):
         return '({0} {1})'.format(self.start, self.end)
 
-    movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+(move|win|loss|tie)\s*$')
+    movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+(move|win|loss|tie|flag)\s*$')
 
     @classmethod
     def from_string(cls, board, move):
@@ -65,6 +65,8 @@ class Movement:
 
         if outcome == 'move':
             outcome = None
+        elif outcome == 'flag':
+            outcome = 'win'
 
         piece = board.get(start)
         if piece is None:
