@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 
+import traceback
 import argparse
 import atexit
 import random
@@ -120,6 +121,13 @@ if __name__ == '__main__':
         log_write('---')
 
     atexit.register(mark)
+
+    def log_traceback(type, val, tb):
+        for socalledline in traceback.format_exception(type, val, tb):
+            for actualline in socalledline.splitlines():
+                log_write(actualline)
+
+    sys.excepthook = log_traceback
 
     write('(' +
           ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)
