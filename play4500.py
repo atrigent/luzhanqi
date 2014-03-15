@@ -69,7 +69,7 @@ if __name__ == '__main__':
     player, time = init_argparser()
 
     if False:
-        logfile = open('log.txt', mode='a')
+        logfile = open('log.{0}.txt'.format(player), mode='a')
     else:
         logfile = None
 
