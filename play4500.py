@@ -73,6 +73,10 @@ if __name__ == '__main__':
     else:
         logfile = None
 
+    def log_write(message):
+        if logfile:
+            logfile.write(message + '\n')
+
     game = LuzhanqiBoard()
     game.setup()
 
@@ -84,15 +88,13 @@ if __name__ == '__main__':
         message = str(message)
         print(message)
 
-        if logfile:
-            logfile.write('sent: "' + message + '"\n')
+        log_write('sent: "' + message + '"')
 
     def receive_move():
         while True:
             message = input()
 
-            if logfile:
-                logfile.write('received: "' + message + '"\n')
+            log_write('received: "' + message + '"')
 
             if invalid_move.match(message) or victory.match(message):
                 sys.exit()
@@ -105,8 +107,7 @@ if __name__ == '__main__':
                 game.add_move(move)
                 return
 
-            if logfile:
-                logfile.write('parsing failed for "' + message + '"\n')
+            log_write('parsing failed for "' + message + '"')
 
     def do_move():
         moves = set(game.valid_moves())
@@ -116,8 +117,7 @@ if __name__ == '__main__':
         receive_move()
 
     def mark():
-        if logfile:
-            logfile.write('---\n')
+        log_write('---')
 
     atexit.register(mark)
 
