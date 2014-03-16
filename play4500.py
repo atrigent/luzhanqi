@@ -86,6 +86,7 @@ if __name__ == '__main__':
     def write(message):
         message = str(message)
         print(message)
+        sys.stdout.flush()
 
         logging.info('sent: "' + message + '"')
 
