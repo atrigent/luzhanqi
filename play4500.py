@@ -2,6 +2,7 @@
 
 import traceback
 import argparse
+import logging
 import atexit
 import random
 import sys
@@ -70,13 +71,10 @@ if __name__ == '__main__':
     player, time = init_argparser()
 
     if False:
-        logfile = open('log.{0}.txt'.format(player), mode='a')
+        logging.basicConfig(filename='log.{0}.txt'.format(player),
+                            level=logging.DEBUG)
     else:
-        logfile = None
-
-    def log_write(message):
-        if logfile:
-            logfile.write(message + '\n')
+        logging.disable(logging.CRITICAL)
 
     game = LuzhanqiBoard()
     game.setup()
@@ -89,13 +87,13 @@ if __name__ == '__main__':
         message = str(message)
         print(message)
 
-        log_write('sent: "' + message + '"')
+        logging.info('sent: "' + message + '"')
 
     def receive_move():
         while True:
             message = input()
 
-            log_write('received: "' + message + '"')
+            logging.info('received: "' + message + '"')
 
             if invalid_move.match(message) or victory.match(message):
                 sys.exit()
@@ -108,12 +106,12 @@ if __name__ == '__main__':
                 game.add_move(move)
                 return
 
-            log_write('parsing failed for "' + message + '"')
+            logging.error('parsing failed for "' + message + '"')
 
     def do_move():
         moves = set(game.valid_moves())
         if len(moves) == 0:
-            log_write('no more possible moves, exiting')
+            logging.critical('no more possible moves!')
 
             sys.exit()
 
@@ -123,14 +121,12 @@ if __name__ == '__main__':
         receive_move()
 
     def mark():
-        log_write('---')
+        logging.info('---')
 
     atexit.register(mark)
 
-    def log_traceback(type, val, tb):
-        for socalledline in traceback.format_exception(type, val, tb):
-            for actualline in socalledline.splitlines():
-                log_write(actualline)
+    def log_traceback(*info):
+        logging.critical('Unhandled exception!', exc_info=info)
 
     sys.excepthook = log_traceback
 
