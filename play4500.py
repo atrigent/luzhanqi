@@ -95,7 +95,10 @@ if __name__ == '__main__':
 
             logging.info('received: "' + message + '"')
 
-            if invalid_move.match(message) or victory.match(message):
+            if invalid_move.match(message):
+                raise RuntimeError(message)
+
+            if victory.match(message):
                 sys.exit()
 
             if flag_pos.match(message):
@@ -111,9 +114,7 @@ if __name__ == '__main__':
     def do_move():
         moves = set(game.valid_moves())
         if len(moves) == 0:
-            logging.critical('no more possible moves!')
-
-            sys.exit()
+            raise RuntimeError('no more possible moves!')
 
         move = random.sample(moves, 1)[0]
         write(move)
