@@ -1,5 +1,6 @@
 from collections import namedtuple, defaultdict
 from itertools import groupby
+import logging
 import random
 import re
 
@@ -462,3 +463,24 @@ class LuzhanqiBoard:
             self._move_on_board(movement)
 
         self.turn += 1
+
+    def log_board_layout(self, level=logging.DEBUG):
+        def piece_display(piece):
+            if piece is None:
+                return '  '
+
+            if piece.friendly:
+                return '+' + piece.spec.symbol
+            else:
+                return '-?'
+
+        def pad_num(num):
+            return str(num).rjust(2)
+
+        logging.log(level, '    ' + ' '.join(pad_num(x) for x in self.system.x))
+
+        for y in self.system.y:
+            pieces = ' '.join(piece_display(self.board[self.Coord(x, y)])
+                              for x in self.system.x)
+
+            logging.log(level, pad_num(y) + ': ' + pieces)
