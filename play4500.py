@@ -130,6 +130,7 @@ if __name__ == '__main__':
 
     def log_traceback(*info):
         logging.critical('Unhandled exception!', exc_info=info)
+        game.log_board_layout()
 
     sys.excepthook = log_traceback
 
