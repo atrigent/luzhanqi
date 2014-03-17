@@ -50,7 +50,8 @@ class Movement:
     def __str__(self):
         return '({0} {1})'.format(self.start, self.end)
 
-    movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+(move|win|loss|tie|flag)\s*$')
+    movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+'
+                             '(move|win|loss|tie|flag)\s*$')
 
     @classmethod
     def from_string(cls, board, move):
@@ -308,9 +309,11 @@ class LuzhanqiBoard:
             return set()
 
         either_side = lambda axis, i: (i - 1, i + 1)
-        valid_moves = set(self.system.map_coord_components_separately([position],
-                                                                      x=either_side,
-                                                                      y=either_side))
+        valid_moves = set(self.system.map_coord_components_separately(
+                                          [position],
+                                          x=either_side,
+                                          y=either_side
+                                      ))
 
         diagonals = set(self.system.map_coord_components([position],
                                                          x=either_side,

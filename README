@@ -1,7 +1,12 @@
 CS4500-Luzhanqi
 ===============
 
-For Northeastern University CS4500's semester project, students must create a text based version of the game Luzhanqi. The software created can be in any language, and will represent a single player in the game. There will be a referee to communicate messages between the two players and verify all moves made are valid. Information on moves, board layout, etc, will be sent to the referee via standard out.
+For Northeastern University CS4500's semester project, students must create a
+text based version of the game Luzhanqi. The software created can be in any
+language, and will represent a single player in the game. There will be a
+referee to communicate messages between the two players and verify all moves
+made are valid. Information on moves, board layout, etc, will be sent to the
+referee via standard out.
 
 
 ## Group Members:
