@@ -47,4 +47,4 @@ move.
 ## Testing
 Tests can be run by executing the command
 
-    python -m unittest discover test/
+    python3 -m unittest discover test/
