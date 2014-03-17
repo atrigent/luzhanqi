@@ -115,7 +115,8 @@ if __name__ == '__main__':
     def do_move():
         moves = set(game.valid_moves())
         if len(moves) == 0:
-            raise RuntimeError('no more possible moves!')
+            write('forfeit')
+            return
 
         move = random.sample(moves, 1)[0]
         write(move)
