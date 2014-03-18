@@ -29,10 +29,6 @@ def coordtuple(name, axes, strfunc=None, parsefunc=None):
             else:
                 return super().__str__()
 
-        def match(self, spec):
-            return all(match(component, matchval)
-                       for component, matchval in zip(self, spec))
-
         @staticmethod
         def from_string(coord):
             if parsefunc is not None:

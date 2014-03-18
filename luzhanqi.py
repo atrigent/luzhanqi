@@ -4,7 +4,7 @@ import logging
 import random
 import re
 
-from misc import namedtuple_with_defaults
+from misc import namedtuple_with_defaults, match_sequence
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
                          CoordinateSystemState)
 
@@ -261,7 +261,7 @@ class LuzhanqiBoard:
         if isinstance(matchval, Space):
             return self._position_spec(position) == matchval
         else:
-            return position.match(matchval)
+            return match_sequence(position, matchval)
 
     def _initial_positions(self):
         nonneg = lambda i: i >= 0
@@ -299,7 +299,7 @@ class LuzhanqiBoard:
         return True
 
     def _railroad_moves(self, piece):
-        if abs(piece.position).match(((0, 2), 1)):
+        if match_sequence(abs(piece.position), ((0, 2), 1)):
             yield self.Coord(piece.position.x, -piece.position.y)
 
     def _valid_moves_for_piece(self, piece):

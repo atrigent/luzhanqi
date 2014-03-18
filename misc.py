@@ -28,6 +28,11 @@ def match(val, matchval):
 
     return val == matchval
 
+def match_sequence(seq, matchvals):
+    return (len(seq) == len(matchvals) and
+            all(match(val, matchval)
+                for val, matchval in zip(seq, matchvals)))
+
 class SequenceMixin:
     def __getitem__(self, key):
         if isinstance(key, int):
