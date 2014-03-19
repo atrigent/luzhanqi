@@ -3,7 +3,6 @@ from itertools import groupby
 from functools import reduce
 import logging
 import random
-import re
 
 from misc import namedtuple_with_defaults, match_sequence
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
@@ -47,35 +46,6 @@ class Movement:
                 raise ValueError('This is not an attack!')
 
             self.attack = None
-
-    def __str__(self):
-        return '({0} {1})'.format(self.start, self.end)
-
-    movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+'
-                             '(move|win|loss|tie|flag)\s*$')
-
-    @classmethod
-    def from_string(cls, board, move):
-        move_match = cls.movement_re.match(move)
-
-        if move_match is None:
-            return None
-
-        start, end, player, outcome = move_match.group(1, 2, 3, 4)
-        start = LuzhanqiBoard.Coord.from_string(start)
-        end = LuzhanqiBoard.Coord.from_string(end)
-        player = int(player)
-
-        if outcome == 'move':
-            outcome = None
-        elif outcome == 'flag':
-            outcome = 'win'
-
-        piece = board.get(start)
-        if piece is None:
-            return None
-
-        return Movement(board, board.get(start), end, outcome)
 
 class BoardPiece:
     def __init__(self, spec=None):
@@ -167,34 +137,8 @@ class LuzhanqiBoard:
         'headquarters': Space('Headquarters', quagmire=True)
     }
 
-    def stringify_coord(x, y):
-        xaxis, xval = x
-        xstr = chr(ord('A') + xaxis.index(xval))
-
-        yaxis, yval = y
-        ystr = str(len(yaxis) - yaxis.index(yval))
-
-        return xstr + ystr
-
-    coord_regex = re.compile('^([A-E])(\d{1,2})$')
-    def parse_coord(coord):
-        coord_match = LuzhanqiBoard.coord_regex.match(coord)
-
-        if coord_match is None:
-            return None
-
-        x, y = coord_match.group(1, 2)
-
-        system = LuzhanqiBoard.system
-        x = system.x[ord(x) - ord('A')]
-        y = system.y[-int(y)]
-
-        return system.Coord(x, y)
-
     system = CoordinateSystem(CenteredOriginAxis('x', 5),
-                              CenteredOriginAxis('y', 12),
-                              strfunc=stringify_coord,
-                              parsefunc=parse_coord)
+                              CenteredOriginAxis('y', 12))
     Coord = system.Coord
 
     board_spec = defaultdict(lambda: LuzhanqiBoard.spaces['station'], {

@@ -3,7 +3,7 @@ from itertools import product
 
 from misc import match, SequenceMixin
 
-def coordtuple(name, axes, strfunc=None, parsefunc=None):
+def coordtuple(name, axes):
     fields = [axis.symbol for axis in axes]
 
     class T(namedtuple(name, fields)):
@@ -22,19 +22,6 @@ def coordtuple(name, axes, strfunc=None, parsefunc=None):
 
         def __neg__(self):
             return self._map_vals(lambda val: -val)
-
-        def __str__(self):
-            if strfunc is not None:
-                return strfunc(*zip(axes, self))
-            else:
-                return super().__str__()
-
-        @staticmethod
-        def from_string(coord):
-            if parsefunc is not None:
-                return parsefunc(coord)
-            else:
-                raise NotImplementedError()
 
     T.__name__ = name
 
@@ -119,10 +106,10 @@ class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
     pass
 
 class CoordinateSystem:
-    def __init__(self, *axes, strfunc=None, parsefunc=None):
+    def __init__(self, *axes):
         self.axes = axes
 
-        self.Coord = coordtuple('Coord', axes, strfunc, parsefunc)
+        self.Coord = coordtuple('Coord', axes)
 
         for axis in axes:
             setattr(self, axis.symbol, axis)

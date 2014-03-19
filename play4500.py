@@ -69,6 +69,59 @@ def init_argparser():
     args = parser.parse_args()
     return args.player, args.time
 
+# Stuff for dealing with the message syntax for coordinates
+system = LuzhanqiBoard.system
+
+def stringify_coord(self):
+    xstr = chr(ord('A') + system.x.index(self.x))
+    ystr = str(len(system.y) - system.y.index(self.y))
+
+    return xstr + ystr
+
+# Monkey-patch automatic stringification into Coord
+system.Coord.__str__ = stringify_coord
+
+coord_regex = re.compile('^([A-E])(\d{1,2})$')
+
+def parse_coord(coord):
+    coord_match = coord_regex.match(coord)
+
+    if coord_match is None:
+        return None
+
+    x, y = coord_match.group(1, 2)
+
+    x = system.x[ord(x) - ord('A')]
+    y = system.y[-int(y)]
+
+    return system.Coord(x, y)
+
+# Stuff for dealing with the message syntax for movements
+movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+'
+                         '(move|win|loss|tie|flag)\s*$')
+
+def parse_movement(board, move):
+    move_match = movement_re.match(move)
+
+    if move_match is None:
+        return None
+
+    start, end, player, outcome = move_match.group(1, 2, 3, 4)
+    start = parse_coord(start)
+    end = parse_coord(end)
+    player = int(player)
+
+    if outcome == 'move':
+        outcome = None
+    elif outcome == 'flag':
+        outcome = 'win'
+
+    piece = board.get(start)
+    if piece is None:
+        return None
+
+    return Movement(board, board.get(start), end, outcome)
+
 def main():
     # If init_argparser() returns, the command line arguments were correct
     player, time = init_argparser()
@@ -108,7 +161,7 @@ def main():
             if flag_pos.match(message):
                 continue
 
-            move = Movement.from_string(game, message)
+            move = parse_movement(game, message)
             if move is not None:
                 game.add_move(move)
                 return
@@ -122,7 +175,7 @@ def main():
             return
 
         move = random.sample(moves, 1)[0]
-        write(move)
+        write('({0} {1})'.format(move.start, move.end))
 
         receive_move()
 
