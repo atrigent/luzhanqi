@@ -136,8 +136,11 @@ def main():
                        LuzhanqiBoard.LANDMINE,
                        LuzhanqiBoard.BOMB]
 
+    def get_placements(piece, choices):
+        return random.sample(choices, piece.initial_count)
+
     game = LuzhanqiBoard()
-    game.setup(placement_order)
+    game.setup(placement_order, get_placements)
 
     invalid_move = re.compile('^Invalid\s+Board\s+Move\s+(.*)$')
     flag_pos = re.compile('^F\s+(\w+)$')

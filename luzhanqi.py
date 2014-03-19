@@ -1,7 +1,6 @@
 from collections import namedtuple, defaultdict
 from functools import reduce
 import logging
-import random
 
 from misc import namedtuple_with_defaults, match_sequence
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
@@ -300,7 +299,7 @@ class LuzhanqiBoard:
             if piece not in order:
                 yield piece
 
-    def _do_initial_placement(self, placement_order):
+    def _do_initial_placement(self, placement_order, get_placements):
         positions = set(self._initial_positions())
 
         for piece in self._placement_order(placement_order):
@@ -316,7 +315,7 @@ class LuzhanqiBoard:
             if len(choices) < piece.initial_count:
                 raise RuntimeError("Not enough choices to place piece!")
 
-            chosen = set(random.sample(choices, piece.initial_count))
+            chosen = set(get_placements(piece, choices))
             for choice in chosen:
                 new_piece = BoardPiece(piece)
                 new_piece.add_event(Movement(self, new_piece, choice))
@@ -348,11 +347,11 @@ class LuzhanqiBoard:
         self.board[movement.start] = None
         self.board[movement.end] = movement.piece
 
-    def setup(self, placement_order):
+    def setup(self, placement_order, get_placements):
         if self.turn != 0:
             raise RuntimeError('Cannot setup while a game is in progress!')
 
-        self._do_initial_placement(placement_order)
+        self._do_initial_placement(placement_order, get_placements)
 
         for position in self._initial_enemy_positions():
             new_piece = BoardPiece()
