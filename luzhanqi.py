@@ -1,5 +1,6 @@
 from collections import namedtuple, defaultdict
 from itertools import groupby
+from functools import reduce
 import logging
 import random
 import re
@@ -467,7 +468,7 @@ class LuzhanqiBoard:
 
         self.turn += 1
 
-    def log_board_layout(self, level=logging.DEBUG):
+    def _layout_markers(self):
         def piece_display(piece):
             if piece is None:
                 return '  '
@@ -477,13 +478,72 @@ class LuzhanqiBoard:
             else:
                 return '-?'
 
-        def pad_num(num):
-            return str(num).rjust(2)
+        return {piece.position: piece_display(piece)
+                for piece in self.friendly_pieces | self.enemy_pieces}
 
-        logging.log(level, '    ' + ' '.join(pad_num(x) for x in self.system.x))
+    def log_board_layout(self, level=logging.DEBUG):
+        self.log_board_with_markers(self._layout_markers(), level=level)
 
-        for y in self.system.y:
-            pieces = ' '.join(piece_display(self.board[self.Coord(x, y)])
-                              for x in self.system.x)
+    def log_board_with_markers(self, *marks_dicts, level=logging.DEBUG):
+        all_marks = {}
+        for marks_dict in marks_dicts:
+            for position, mark in marks_dict.items():
+                if position in all_marks:
+                    all_marks[position] += ',' + mark
+                else:
+                    all_marks[position] = mark
 
-            logging.log(level, pad_num(y) + ': ' + pieces)
+        col_widths = [reduce(max,
+                             (len(mark) for position, mark in all_marks.items()
+                                        if position.x == col),
+                             len(str(col)))
+                      for col in self.system.x]
+        horizontal_pad_size = 2
+        horizontal_pad = ' ' * horizontal_pad_size
+
+        vertical_pad_size = 1
+
+        def grid_line(edge='|', sep='|', row=None, dashes=False, marks={}):
+            if row:
+                line = str(row).rjust(2) + ' '
+            else:
+                line = '   '
+
+            line += edge
+
+            if dashes:
+                displays = ('-' * (horizontal_pad_size * 2 + width)
+                            for width in col_widths)
+            else:
+                displays = (horizontal_pad +
+                            str(marks.get(col, '')).center(width) +
+                            horizontal_pad
+                            for col, width in zip(self.system.x, col_widths))
+
+            line += sep.join(displays)
+
+            line += edge
+
+            logging.log(level, line)
+
+        def pad_vertical():
+            for _ in range(vertical_pad_size):
+                grid_line()
+
+        def sep_line():
+            grid_line(edge='+', sep='+', dashes=True)
+
+        grid_line(edge=' ', sep=' ', marks={x: x for x in self.system.x})
+
+        for row in self.system.y:
+            sep_line()
+            pad_vertical()
+
+            pieces = {x: mark for (x, y), mark in all_marks.items()
+                              if y == row}
+
+            grid_line(row=row, marks=pieces)
+
+            pad_vertical()
+
+        sep_line()
