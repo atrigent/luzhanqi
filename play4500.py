@@ -122,6 +122,50 @@ def parse_movement(board, move):
 
     return Movement(board, board.get(start), end, outcome)
 
+invalid_move = re.compile('^Invalid\s+Board\s+Move\s+(.*)$')
+flag_pos = re.compile('^F\s+(\w+)$')
+victory = re.compile('(1|2|No)\s+Victory')
+
+def write(message):
+    message = str(message)
+    print(message)
+    sys.stdout.flush()
+
+    logging.info('sent: "' + message + '"')
+
+def receive_move(game):
+    while True:
+        message = input()
+
+        logging.info('received: "' + message + '"')
+
+        if invalid_move.match(message):
+            raise RuntimeError(message)
+
+        if victory.match(message):
+            sys.exit()
+
+        if flag_pos.match(message):
+            continue
+
+        move = parse_movement(game, message)
+        if move is not None:
+            game.add_move(move)
+            return
+
+        logging.error('parsing failed for "' + message + '"')
+
+def do_move(game):
+    moves = set(game.valid_moves())
+    if len(moves) == 0:
+        write('forfeit')
+        return
+
+    move = random.sample(moves, 1)[0]
+    write('({0} {1})'.format(move.start, move.end))
+
+    receive_move(game)
+
 def main():
     # If init_argparser() returns, the command line arguments were correct
     player, time = init_argparser()
@@ -142,50 +186,6 @@ def main():
     game = LuzhanqiBoard()
     game.setup(placement_order, get_placements)
 
-    invalid_move = re.compile('^Invalid\s+Board\s+Move\s+(.*)$')
-    flag_pos = re.compile('^F\s+(\w+)$')
-    victory = re.compile('(1|2|No)\s+Victory')
-
-    def write(message):
-        message = str(message)
-        print(message)
-        sys.stdout.flush()
-
-        logging.info('sent: "' + message + '"')
-
-    def receive_move():
-        while True:
-            message = input()
-
-            logging.info('received: "' + message + '"')
-
-            if invalid_move.match(message):
-                raise RuntimeError(message)
-
-            if victory.match(message):
-                sys.exit()
-
-            if flag_pos.match(message):
-                continue
-
-            move = parse_movement(game, message)
-            if move is not None:
-                game.add_move(move)
-                return
-
-            logging.error('parsing failed for "' + message + '"')
-
-    def do_move():
-        moves = set(game.valid_moves())
-        if len(moves) == 0:
-            write('forfeit')
-            return
-
-        move = random.sample(moves, 1)[0]
-        write('({0} {1})'.format(move.start, move.end))
-
-        receive_move()
-
     def mark():
         logging.info('---')
 
@@ -203,11 +203,11 @@ def main():
           ')')
 
     if player == 1:
-        do_move()
+        do_move(game)
 
     while True:
-        receive_move()
-        do_move()
+        receive_move(game)
+        do_move(game)
 
 if __name__ == '__main__':
     if False:
