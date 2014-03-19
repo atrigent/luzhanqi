@@ -33,19 +33,21 @@ def match_sequence(seq, matchvals):
             all(match(val, matchval)
                 for val, matchval in zip(seq, matchvals)))
 
-class SequenceMixin:
-    def __getitem__(self, key):
+def sequence_getitem(getitem):
+    def new_getitem(self, key):
         if isinstance(key, int):
             if -len(self) <= key <= -1:
                 key = len(self) + key
             elif key < 0:
                 raise IndexError()
 
-            return super().__getitem__(key)
+            return getitem(self, key)
         elif isinstance(key, slice):
             return [self[i] for i in range(*key.indices(len(self)))]
         else:
             raise TypeError()
+
+    return new_getitem
 
 def find_connected_component(vertex, f):
     connections = set()

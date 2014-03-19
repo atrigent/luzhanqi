@@ -1,7 +1,7 @@
 from collections import namedtuple
 from itertools import product
 
-from misc import match, SequenceMixin
+from misc import match, sequence_getitem
 
 def coordtuple(name, axes):
     fields = [axis.symbol for axis in axes]
@@ -27,7 +27,7 @@ def coordtuple(name, axes):
 
     return T
 
-class CenteredOriginAxisBase:
+class CenteredOriginAxis:
     def __init__(self, symbol, num_vals):
         self.symbol = symbol
         self.num_vals = num_vals
@@ -35,6 +35,7 @@ class CenteredOriginAxisBase:
     def __len__(self):
         return self.num_vals
 
+    @sequence_getitem
     def __getitem__(self, i):
         if not 0 <= i < self.num_vals:
             raise IndexError()
@@ -101,9 +102,6 @@ class CenteredOriginAxisBase:
             return (val,)
         else:
             return (-val,)
-
-class CenteredOriginAxis(SequenceMixin, CenteredOriginAxisBase):
-    pass
 
 class CoordinateSystem:
     def __init__(self, *axes):
