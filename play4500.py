@@ -169,12 +169,26 @@ def do_move(game):
 def main():
     # If init_argparser() returns, the command line arguments were correct
     player, time = init_argparser()
+    game = None
 
     if False:
         logging.basicConfig(filename='log.{0}.txt'.format(player),
                             level=logging.DEBUG)
     else:
         logging.disable(logging.CRITICAL)
+
+    def mark():
+        logging.info('---')
+
+    atexit.register(mark)
+
+    def log_traceback(*info):
+        logging.critical('Unhandled exception!', exc_info=info)
+
+        if game:
+            game.log_board_layout()
+
+    sys.excepthook = log_traceback
 
     placement_order = [LuzhanqiBoard.FLAG,
                        LuzhanqiBoard.LANDMINE,
@@ -185,17 +199,6 @@ def main():
 
     game = LuzhanqiBoard()
     game.setup(placement_order, get_placements)
-
-    def mark():
-        logging.info('---')
-
-    atexit.register(mark)
-
-    def log_traceback(*info):
-        logging.critical('Unhandled exception!', exc_info=info)
-        game.log_board_layout()
-
-    sys.excepthook = log_traceback
 
     write('(' +
           ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)
