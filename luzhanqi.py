@@ -196,9 +196,6 @@ class LuzhanqiBoard:
 
         self.turn = 0
 
-    def _initial_piece_counts(self):
-        return {key: val.initial_count for key, val in self.pieces.items()}
-
     def _position_spec(self, position):
         return self.board_spec[abs(position)]
 
