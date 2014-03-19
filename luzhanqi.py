@@ -130,59 +130,61 @@ class BoardPiece:
             return last_move.end
 
 class LuzhanqiBoard:
-    spaces = {
-        'station': Space('Soldier Station'),
-        'camp': Space('Camp', safe=True, diagonals=True,
-                              initial_placement=False),
-        'headquarters': Space('Headquarters', quagmire=True)
-    }
+    STATION = Space('Soldier Station')
+    CAMP = Space('Camp', safe=True, diagonals=True,
+                         initial_placement=False)
+    HEADQUARTERS = Space('Headquarters', quagmire=True)
 
     system = CoordinateSystem(CenteredOriginAxis('x', 5),
                               CenteredOriginAxis('y', 12))
     Coord = system.Coord
 
-    board_spec = defaultdict(lambda: LuzhanqiBoard.spaces['station'], {
-        Coord(1, 2): spaces['camp'],
-        Coord(0, 3): spaces['camp'],
-        Coord(1, 4): spaces['camp'],
-        Coord(1, 6): spaces['headquarters']
+    board_spec = defaultdict(lambda: LuzhanqiBoard.STATION, {
+        Coord(1, 2): CAMP,
+        Coord(0, 3): CAMP,
+        Coord(1, 4): CAMP,
+        Coord(1, 6): HEADQUARTERS
     })
 
     # initial_counts should add up to 25
+    MARSHAL = Piece('Field Marshal', '9', 1, order=9,
+                    reveal_flag_on_defeat=True)
+    GENERAL = Piece('General', '8', 1, order=8)
+    LIEUT_GENERAL = Piece('Lieutenant General', '7', 2, order=7)
+    BRIG_GENERAL = Piece('Brigadier General', '6', 2, order=6)
+    COLONEL = Piece('Colonel', '5', 2, order=5)
+    MAJOR = Piece('Major', '4', 2, order=4)
+    CAPTAIN = Piece('Captain', '3', 3, order=3)
+    COMMANDER = Piece('Commander', '2', 3, order=2)
+    ENGINEER = Piece('Engineer', '1', 3, order=1,
+                     defeats_sessile_bombs=True,
+                     railroad_corners=True)
+    BOMB = Piece('Bomb', 'B', 2, bomb=True,
+                 initial_placement=('*', lambda y: y > 1))
+    LANDMINE = Piece('Landmine', 'L', 3, sessile=True, bomb=True,
+                     initial_placement=('*', lambda y: y > 4))
+    FLAG = Piece('Flag', 'F', 1, sessile=True, lose_on_defeat=True,
+                 initial_placement=HEADQUARTERS)
+
     pieces = {
-        '9': Piece('Field Marshal', '9', 1, order=9,
-                   reveal_flag_on_defeat=True),
-        '8': Piece('General', '8', 1, order=8),
-        '7': Piece('Lieutenant General', '7', 2, order=7),
-        '6': Piece('Brigadier General', '6', 2, order=6),
-        '5': Piece('Colonel', '5', 2, order=5),
-        '4': Piece('Major', '4', 2, order=4),
-        '3': Piece('Captain', '3', 3, order=3),
-        '2': Piece('Commander', '2', 3, order=2),
-        '1': Piece('Engineer', '1', 3, order=1,
-                   defeats_sessile_bombs=True,
-                   railroad_corners=True),
-        'B': Piece('Bomb', 'B', 2, bomb=True,
-                   initial_placement=('*', lambda y: y > 1)),
-        'L': Piece('Landmine', 'L', 3, sessile=True, bomb=True,
-                   initial_placement=('*', lambda y: y > 4)),
-        'F': Piece('Flag', 'F', 1, sessile=True, lose_on_defeat=True,
-                   initial_placement=spaces['headquarters'])
+        MARSHAL, GENERAL, LIEUT_GENERAL, BRIG_GENERAL,
+        COLONEL, MAJOR, CAPTAIN, COMMANDER, ENGINEER,
+        BOMB, LANDMINE, FLAG
     }
 
     piece_strategies = {
-        pieces['9']: PieceStrategy(3),
-        pieces['8']: PieceStrategy(3),
-        pieces['7']: PieceStrategy(3),
-        pieces['6']: PieceStrategy(3),
-        pieces['5']: PieceStrategy(3),
-        pieces['4']: PieceStrategy(3),
-        pieces['3']: PieceStrategy(3),
-        pieces['2']: PieceStrategy(3),
-        pieces['1']: PieceStrategy(3),
-        pieces['B']: PieceStrategy(2),
-        pieces['L']: PieceStrategy(1),
-        pieces['F']: PieceStrategy(0)
+        MARSHAL: PieceStrategy(3),
+        GENERAL: PieceStrategy(3),
+        LIEUT_GENERAL: PieceStrategy(3),
+        BRIG_GENERAL: PieceStrategy(3),
+        COLONEL: PieceStrategy(3),
+        MAJOR: PieceStrategy(3),
+        CAPTAIN: PieceStrategy(3),
+        COMMANDER: PieceStrategy(3),
+        ENGINEER: PieceStrategy(3),
+        BOMB: PieceStrategy(2),
+        LANDMINE: PieceStrategy(1),
+        FLAG: PieceStrategy(0)
     }
 
     def __init__(self):
