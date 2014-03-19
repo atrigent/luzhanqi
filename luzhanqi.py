@@ -316,16 +316,14 @@ class LuzhanqiBoard:
             if len(choices) < piece.initial_count:
                 raise RuntimeError("Not enough choices to place piece!")
 
-            random.shuffle(choices)
-
-            chosen = choices[:piece.initial_count]
+            chosen = set(random.sample(choices, piece.initial_count))
             for choice in chosen:
                 new_piece = BoardPiece(piece)
                 new_piece.add_event(Movement(self, new_piece, choice))
                 self.friendly_pieces.add(new_piece)
                 self.board[choice] = new_piece
 
-            positions -= set(chosen)
+            positions -= chosen
 
     def _check_pulse(self, piece):
         if not piece.dead:
