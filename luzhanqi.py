@@ -1,5 +1,4 @@
 from collections import namedtuple, defaultdict
-from itertools import groupby
 from functools import reduce
 import logging
 import random
@@ -19,8 +18,6 @@ Piece = namedtuple_with_defaults('Piece', 'name', 'symbol', 'initial_count',
                                  reveal_flag_on_defeat=False,
                                  initial_placement=None,
                                  lose_on_defeat=False)
-
-PieceStrategy = namedtuple_with_defaults('PieceStrategy', 'placement_step')
 
 AttackInfo = namedtuple('AttackInfo', 'piece outcome')
 
@@ -172,21 +169,6 @@ class LuzhanqiBoard:
         BOMB, LANDMINE, FLAG
     }
 
-    piece_strategies = {
-        MARSHAL: PieceStrategy(3),
-        GENERAL: PieceStrategy(3),
-        LIEUT_GENERAL: PieceStrategy(3),
-        BRIG_GENERAL: PieceStrategy(3),
-        COLONEL: PieceStrategy(3),
-        MAJOR: PieceStrategy(3),
-        CAPTAIN: PieceStrategy(3),
-        COMMANDER: PieceStrategy(3),
-        ENGINEER: PieceStrategy(3),
-        BOMB: PieceStrategy(2),
-        LANDMINE: PieceStrategy(1),
-        FLAG: PieceStrategy(0)
-    }
-
     def __init__(self):
         self.board = CoordinateSystemState(self.system)
 
@@ -310,41 +292,40 @@ class LuzhanqiBoard:
 
         return False
 
-    def _placement_steps(self):
-        keyfunc = lambda pair: pair[1].placement_step
+    def _placement_order(self, order):
+        for piece in order:
+            yield piece
 
-        for step, pairs in groupby(sorted(self.piece_strategies.items(),
-                                          key=keyfunc),
-                                   keyfunc):
-            yield (piece for piece, strategy in pairs)
+        for piece in self.pieces:
+            if piece not in order:
+                yield piece
 
-    def _do_initial_placement(self):
+    def _do_initial_placement(self, placement_order):
         positions = set(self._initial_positions())
 
-        for step in self._placement_steps():
-            for piece in step:
-                placement = piece.initial_placement
-                choices = positions
+        for piece in self._placement_order(placement_order):
+            placement = piece.initial_placement
+            choices = positions
 
-                if placement is not None:
-                    choices = (position
-                               for position in positions
-                               if self._position_match(position, placement))
+            if placement is not None:
+                choices = (position
+                           for position in positions
+                           if self._position_match(position, placement))
 
-                choices = list(choices)
-                if len(choices) < piece.initial_count:
-                    raise RuntimeError("Not enough choices to place piece!")
+            choices = list(choices)
+            if len(choices) < piece.initial_count:
+                raise RuntimeError("Not enough choices to place piece!")
 
-                random.shuffle(choices)
+            random.shuffle(choices)
 
-                chosen = choices[:piece.initial_count]
-                for choice in chosen:
-                    new_piece = BoardPiece(piece)
-                    new_piece.add_event(Movement(self, new_piece, choice))
-                    self.friendly_pieces.add(new_piece)
-                    self.board[choice] = new_piece
+            chosen = choices[:piece.initial_count]
+            for choice in chosen:
+                new_piece = BoardPiece(piece)
+                new_piece.add_event(Movement(self, new_piece, choice))
+                self.friendly_pieces.add(new_piece)
+                self.board[choice] = new_piece
 
-                positions -= set(chosen)
+            positions -= set(chosen)
 
     def _check_pulse(self, piece):
         if not piece.dead:
@@ -369,11 +350,11 @@ class LuzhanqiBoard:
         self.board[movement.start] = None
         self.board[movement.end] = movement.piece
 
-    def setup(self):
+    def setup(self, placement_order):
         if self.turn != 0:
             raise RuntimeError('Cannot setup while a game is in progress!')
 
-        self._do_initial_placement()
+        self._do_initial_placement(placement_order)
 
         for position in self._initial_enemy_positions():
             new_piece = BoardPiece()

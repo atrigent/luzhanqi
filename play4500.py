@@ -132,8 +132,12 @@ def main():
     else:
         logging.disable(logging.CRITICAL)
 
+    placement_order = [LuzhanqiBoard.FLAG,
+                       LuzhanqiBoard.LANDMINE,
+                       LuzhanqiBoard.BOMB]
+
     game = LuzhanqiBoard()
-    game.setup()
+    game.setup(placement_order)
 
     invalid_move = re.compile('^Invalid\s+Board\s+Move\s+(.*)$')
     flag_pos = re.compile('^F\s+(\w+)$')
