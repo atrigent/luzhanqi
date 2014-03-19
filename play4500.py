@@ -1,5 +1,8 @@
 #! /usr/bin/python3
 
+import cProfile
+import os
+
 import traceback
 import argparse
 import logging
@@ -66,7 +69,7 @@ def init_argparser():
     args = parser.parse_args()
     return args.player, args.time
 
-if __name__ == '__main__':
+def main():
     # If init_argparser() returns, the command line arguments were correct
     player, time = init_argparser()
 
@@ -145,3 +148,9 @@ if __name__ == '__main__':
     while True:
         receive_move()
         do_move()
+
+if __name__ == '__main__':
+    if False:
+        cProfile.run('main()', 'profile.{0}'.format(os.getpid()))
+    else:
+        main()
