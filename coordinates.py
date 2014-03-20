@@ -112,6 +112,10 @@ class CoordinateSystem:
         for axis in axes:
             setattr(self, axis.symbol, axis)
 
+    def __contains__(self, coord):
+        return all(component in axis
+                   for component, axis in zip(coord, self.axes))
+
     def coords_matching(self, *spec):
         matches = (axis.match(axis_range)
                    for axis, axis_range in zip(self.axes, spec))
