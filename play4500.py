@@ -133,7 +133,7 @@ def write(message):
 
     logging.info('sent: "' + message + '"')
 
-def receive_move(game):
+def receive_message(game):
     while True:
         message = input()
 
@@ -164,7 +164,7 @@ def do_move(game):
     move = random.sample(moves, 1)[0]
     write('({0} {1})'.format(move.start, move.end))
 
-    receive_move(game)
+    receive_message(game)
 
 def main():
     # If init_argparser() returns, the command line arguments were correct
@@ -209,7 +209,7 @@ def main():
         do_move(game)
 
     while True:
-        receive_move(game)
+        receive_message(game)
         do_move(game)
 
 if __name__ == '__main__':
