@@ -98,7 +98,7 @@ def parse_coord(coord):
 
 # Stuff for dealing with the message syntax for movements
 movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+'
-                         '(move|win|loss|tie|flag)\s*$')
+                         '(move|win|loss|tie)\s*$')
 
 def parse_movement(board, move):
     move_match = movement_re.match(move)
@@ -113,8 +113,6 @@ def parse_movement(board, move):
 
     if outcome == 'move':
         outcome = None
-    elif outcome == 'flag':
-        outcome = 'win'
 
     piece = board.get(start)
     if piece is None:
