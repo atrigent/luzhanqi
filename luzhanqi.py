@@ -1,8 +1,10 @@
 from collections import namedtuple, defaultdict
-from functools import reduce
+from itertools import product
+from functools import reduce, partial
 import logging
 
-from misc import namedtuple_with_defaults, match_sequence
+from misc import (namedtuple_with_defaults, match_sequence,
+                  find_connected_component)
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
                          CoordinateSystemState)
 
@@ -168,6 +170,17 @@ class LuzhanqiBoard:
         BOMB, LANDMINE, FLAG
     }
 
+    railroads = {
+        # the railroad from (0, 5) to (2, 5)
+        ((0, 1, 2), 5),
+        # the railroad from (0, 1) to (2, 1)
+        ((0, 1, 2), 1),
+        # the railroad from (2, 0) to (2, 5)
+        (2, (0, 1, 2, 3, 4, 5)),
+        # the railroad from (0, 0) to (0, 1)
+        (0, (0, 1))
+    }
+
     def __init__(self):
         self.board = CoordinateSystemState(self.system)
 
@@ -223,9 +236,58 @@ class LuzhanqiBoard:
 
         return True
 
+    def _nonabsolute_railroad_lines(self):
+        def nonabsolute_matchvals(matchval):
+            for component in matchval:
+                if not isinstance(component, tuple):
+                    component = (component,)
+
+                reflection = tuple(-val for val in component if val != 0)
+
+                if 0 in component:
+                    yield (component + reflection,)
+                else:
+                    yield (component, reflection)
+
+        for line in self.railroads:
+            for nonabsolute in product(*nonabsolute_matchvals(line)):
+                yield nonabsolute
+
+    def _adjacent_railroad_moves(self, piece, position):
+        if (position in self.system and
+            self.board[position] is not None and
+            self.board[position] != piece):
+            return
+
+        def component_values(line):
+            for position_component, line_component in zip(position, line):
+                values = (position_component - 1,
+                          position_component,
+                          position_component + 1)
+
+                yield tuple(val for val in values
+                                if val in line_component)
+
+        for line in self._nonabsolute_railroad_lines():
+            if (match_sequence(position, line) and
+                (not piece.spec or
+                 piece.spec.railroad_corners or
+                 match_sequence(piece.position, line))):
+                for components in product(*component_values(line)):
+                    if components != position:
+                        yield components
+
     def _railroad_moves(self, piece):
-        if match_sequence(abs(piece.position), ((0, 2), 1)):
-            yield self.Coord(piece.position.x, -piece.position.y)
+        moves = find_connected_component(piece.position,
+                                         partial(self._adjacent_railroad_moves,
+                                                 piece))
+
+        for move in moves:
+            if move != piece.position:
+                try:
+                    yield self.Coord(*move)
+                except ValueError:
+                    pass
 
     def _valid_moves_for_piece(self, piece):
         position = piece.position
