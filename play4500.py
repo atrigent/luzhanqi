@@ -73,6 +73,14 @@ def init_argparser():
 system = LuzhanqiBoard.system
 
 def stringify_coord(self):
+    """Stringify a Coord object as defined by the message syntax.
+
+    The stringification will consist of a letter (A through E) followed
+    by a number (1 through 12).
+
+    Examples: A1, E12, B7, C3, etc
+    """
+
     xstr = chr(ord('A') + system.x.index(self.x))
     ystr = str(len(system.y) - system.y.index(self.y))
 
@@ -84,6 +92,11 @@ system.Coord.__str__ = stringify_coord
 coord_regex = re.compile('^([A-E])(\d{1,2})$')
 
 def parse_coord(coord):
+    """Form a Coord object from a message syntax representation of a coordinate.
+
+    See stringify_coord for a description of the syntax.
+    """
+
     coord_match = coord_regex.match(coord)
 
     if coord_match is None:
@@ -101,6 +114,21 @@ movement_re = re.compile('^\s*(\w+)\s+(\w+)\s+(\d)\s+'
                          '(move|win|loss|tie)\s*$')
 
 def parse_movement(board, move):
+    """Form a Movement object from a message syntax representation of a move.
+
+    This function accepts a LuzhanqiBoard object and a
+    string containing information about a move. The string
+    shall use the syntax that the referee uses when
+    communicating moves to the players. This syntax consists
+    of four elements, separated by whitespace: the first two
+    elements are coordinates (see above), the third is a
+    player number, and the fourth is a move outcome which
+    shall be one of move, win, loss, or tie.
+
+    For the purposes of this function, the player value is
+    ignored. The corresponding Movement object is returned.
+    """
+
     move_match = movement_re.match(move)
 
     if move_match is None:
@@ -125,6 +153,11 @@ flag_pos = re.compile('^F\s+(\w+)$')
 victory = re.compile('(1|2|No)\s+Victory')
 
 def write(message):
+    """Send a message to the referee.
+
+    This function also takes care of output flushing and logging.
+    """
+
     message = str(message)
     print(message)
     sys.stdout.flush()
@@ -132,6 +165,22 @@ def write(message):
     logging.info('sent: "' + message + '"')
 
 def receive_message(game):
+    """Receive messages from the referee until a move message is received.
+
+    See parse_movement for a description of the syntax used for moves.
+
+    Other types of messages that this function knows about include:
+
+    - Invalid Board Move <error string>
+        For when the player makes an error.
+    - F <coordinate>
+        For notifying of the location of the opponent's flag. Sent
+        when the opponent's field marshal is defeated.
+    - 1, 2, or No Victory
+        Sent when the game is over and a player has won or
+        there was a tie.
+    """
+
     while True:
         message = input()
 
@@ -154,6 +203,26 @@ def receive_message(game):
         logging.error('parsing failed for "' + message + '"')
 
 def do_move(game):
+    """Picks a move to make and sends it to the referee.
+
+    This function currently handles the "out of moves" case
+    by sending an invalid message ("forfeit") to the referee.
+    The referee counts this as a loss for the player that
+    sent the invalid message.
+
+    Moves are currently chosen randomly.
+
+    The format for moves is:
+
+    (<start> <end>)
+
+    Where start and end are coordinates (see the stringify_coord
+    function).
+
+    This function also handles receiving the response from the
+    referee that tells us the outcome of the move.
+    """
+
     moves = set(game.valid_moves())
     if len(moves) == 0:
         write('forfeit')

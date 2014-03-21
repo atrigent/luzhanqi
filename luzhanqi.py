@@ -8,10 +8,12 @@ from misc import (namedtuple_with_defaults, match_sequence,
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
                          CoordinateSystemState)
 
+# Represents spaces on the board.
 Space = namedtuple_with_defaults('Space', 'name',
                                  initial_placement=True, safe=False,
                                  diagonals=False, quagmire=False)
 
+# Represents the types of pieces that can go on the board.
 Piece = namedtuple_with_defaults('Piece', 'name', 'symbol', 'initial_count',
                                  order=None, sessile=False, bomb=False,
                                  defeats_sessile_bombs=False,
@@ -20,10 +22,34 @@ Piece = namedtuple_with_defaults('Piece', 'name', 'symbol', 'initial_count',
                                  initial_placement=None,
                                  lose_on_defeat=False)
 
+# Represents an attack - the attacked piece and the attack outcome.
 AttackInfo = namedtuple('AttackInfo', 'piece outcome')
 
 class Movement:
+    """Represents a movement of a piece to a position on a board.
+
+    The following attributes are available (but shouldn't be manually
+    changed):
+
+    - board: the board that this movement is on
+    - piece: the piece being moved
+    - start: where the move is being made from
+        (can be None for an initial placement)
+    - end: the destination position of the move
+    - turn: the turn on which the move was made
+        (0 means initial placement)
+    - attack: an AttackInfo if this is an attack move
+    """
+
     def __init__(self, board, piece, end, outcome=None):
+        """Initialize the movement.
+
+        board is the LuzhanqiBoard on which the movement is to be
+        made, piece is the piece being moved, end is where the piece
+        is being moved to, and outcome is an attack outcome or None
+        if this is not an attack or if the outcome is unknown.
+        """
+
         self.board = board
         self.piece = piece
         self.start = piece.position
@@ -46,7 +72,16 @@ class Movement:
             self.attack = None
 
 class BoardPiece:
+    """Represents a piece on the board with a type and an event history.
+
+    This class encapsulates a piece type and a list of events that have
+    happened to the piece during the game. The piece type may be None
+    if we don't actually know what type of piece it is.
+    """
+
     def __init__(self, spec=None):
+        """Initialize a BoardPiece with an optional piece type."""
+
         self.events = []
         self.movements = []
         self.attacks = []
@@ -78,6 +113,8 @@ class BoardPiece:
         return event.attack.outcome != safe_outcome
 
     def add_event(self, event):
+        """Add the given event to this piece's event history."""
+
         if self.dead:
             raise RuntimeError('This piece is dead - nothing further '
                                'can happen to it')
@@ -93,6 +130,11 @@ class BoardPiece:
 
     @property
     def initial(self):
+        """Get this piece's initial position.
+
+        Returns None if the piece has not yet been placed.
+        """
+
         if len(self.movements) == 0:
             return None
 
@@ -100,10 +142,14 @@ class BoardPiece:
 
     @property
     def friendly(self):
+        """Determine whether this is a friendly piece or not."""
+
         return self.spec is not None
 
     @property
     def dead(self):
+        """Determine whether this piece is dead or not."""
+
         if len(self.events) == 0:
             return False
 
@@ -111,6 +157,11 @@ class BoardPiece:
 
     @property
     def position(self):
+        """Get this piece's current position.
+
+        Returns None if the piece is dead or has not yet been placed.
+        """
+
         if self.dead or not self.initial:
             return None
 
@@ -118,6 +169,11 @@ class BoardPiece:
 
     @property
     def died_at(self):
+        """Return the position where the piece died, if it is dead.
+
+        Returns None if the piece is not dead.
+        """
+
         if not self.dead:
             return None
 
@@ -128,6 +184,13 @@ class BoardPiece:
             return last_move.end
 
 class LuzhanqiBoard:
+    """A complete description of the Luzhanqi board and game.
+
+    This class contains a bunch of information about the game (as class
+    attributes) and instances of this class are capable of keeping
+    track of the game board and implementing the rules of the game.
+    """
+
     STATION = Space('Soldier Station')
     CAMP = Space('Camp', safe=True, diagonals=True,
                          initial_placement=False)
@@ -410,6 +473,19 @@ class LuzhanqiBoard:
         self.board[movement.end] = movement.piece
 
     def setup(self, placement_order, get_placements):
+        """Set up the board, placing our own pieces in the specified way.
+
+        placement_order should be a list of Piece objects. This method
+        will guarantee that it will start placing types of pieces in that
+        order - after the pieces in that list have been placed, no
+        guarantees are made.
+
+        get_placements should be a function which takes a piece and a list
+        of potential placement positions and returns an iterable of chosen
+        placement positions. It should return piece.initial_count chosen
+        positions.
+        """
+
         if self.turn != 0:
             raise RuntimeError('Cannot setup while a game is in progress!')
 
@@ -424,17 +500,25 @@ class LuzhanqiBoard:
         self.turn = 1
 
     def valid_moves(self):
+        """Returns an iterable of valid moves as Movement objects."""
+
         for piece in self.friendly_pieces:
             for move in self._valid_moves_for_piece(piece):
                yield Movement(self, piece, move)
 
     def get_living_pieces(self):
+        """Returns the set of our pieces that are still alive."""
+
         return self.friendly_pieces
 
     def get(self, position):
+        """Get a piece on the board at the given position."""
+
         return self.board[position]
 
     def add_move(self, movement):
+        """Add a move (a Movement object) to the board."""
+
         moved = movement.piece
         attacked = movement.attack.piece if movement.attack else None
 
@@ -465,9 +549,20 @@ class LuzhanqiBoard:
                 for piece in self.friendly_pieces | self.enemy_pieces}
 
     def log_board_layout(self, level=logging.DEBUG):
+        """Log the board layout with the given log level or DEBUG."""
+
         self.log_board_with_markers(self._layout_markers(), level=level)
 
     def log_board_with_markers(self, *marks_dicts, level=logging.DEBUG):
+        """Log the board with the given marks and log level or DEBUG.
+
+        The arguments to this function should be dicts which map between
+        positions on the board and a string to put at that position. If
+        multiple dicts are passed, they are merged into one with values
+        with the same keys joined with commas. The level argument is
+        keyword-only.
+        """
+
         all_marks = {}
         for marks_dict in marks_dicts:
             for position, mark in marks_dict.items():
