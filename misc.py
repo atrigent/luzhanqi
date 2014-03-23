@@ -81,6 +81,11 @@ def sequence_getitem(getitem):
     return new_getitem
 
 def find_connected_component(vertex, f):
+    """Given a function and initial vertex, uses the function
+    as an iterator to find accessible adjacent vertices, which
+    are recursively checked for more accessible vertices, and adds
+    them to the set of connections.
+    """
     connections = set()
 
     def iterate_connections(origin):
