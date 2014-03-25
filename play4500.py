@@ -238,10 +238,11 @@ def main():
     player, time = init_argparser()
     game = None
 
-    if False:
+    log_level = os.environ.get('PLAY4500_LOGGING', None)
+    if log_level is not None:
         logging.basicConfig(filename='log.{0}.txt'.format(player),
                             format='[%(asctime)s] %(levelname)s: %(message)s',
-                            level=logging.DEBUG)
+                            level=log_level.upper())
     else:
         logging.disable(logging.CRITICAL)
 
@@ -281,7 +282,7 @@ def main():
         do_move(game)
 
 if __name__ == '__main__':
-    if False:
+    if os.environ.get('PLAY4500_PROFILING', None) == '1':
         cProfile.run('main()', 'profile.{0}'.format(os.getpid()))
     else:
         main()
