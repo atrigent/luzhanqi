@@ -240,6 +240,7 @@ def main():
 
     if False:
         logging.basicConfig(filename='log.{0}.txt'.format(player),
+                            format='[%(asctime)s] %(levelname)s: %(message)s',
                             level=logging.DEBUG)
     else:
         logging.disable(logging.CRITICAL)
