@@ -205,11 +205,6 @@ def receive_message(game):
 def do_move(game):
     """Picks a move to make and sends it to the referee.
 
-    This function currently handles the "out of moves" case
-    by sending an invalid message ("forfeit") to the referee.
-    The referee counts this as a loss for the player that
-    sent the invalid message.
-
     Moves are currently chosen randomly.
 
     The format for moves is:
@@ -218,6 +213,10 @@ def do_move(game):
 
     Where start and end are coordinates (see the stringify_coord
     function).
+
+    If there are no moves to make, the "forfeit" message is sent
+    in place of a move message. This message causes this player's
+    opponent to immediately win the game.
 
     This function also handles receiving the response from the
     referee that tells us the outcome of the move.
