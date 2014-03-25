@@ -1,2 +1,4 @@
 *.pyc
 ref4500*
+log.*
+profile.*
