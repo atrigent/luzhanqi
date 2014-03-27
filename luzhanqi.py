@@ -529,29 +529,6 @@ class LuzhanqiBoard:
 
             positions -= chosen
 
-    def _check_pulse(self, piece):
-        if not piece.dead:
-            return
-
-        self.board[piece.died_at] = None
-
-        if piece.friendly:
-            living_set = self.friendly_pieces
-            dead_set = self.friendly_pieces_dead
-        else:
-            living_set = self.enemy_pieces
-            dead_set = self.enemy_pieces_dead
-
-        living_set.remove(piece)
-        dead_set.add(piece)
-
-    def _move_on_board(self, movement):
-        if self.board[movement.end] is not None:
-            raise RuntimeError('Cannot move onto an occupied space')
-
-        self.board[movement.start] = None
-        self.board[movement.end] = movement.piece
-
     def setup(self, placement_order, get_placements):
         """Set up the board, placing our own pieces in the specified way.
 
@@ -595,6 +572,29 @@ class LuzhanqiBoard:
         """Get a piece on the board at the given position."""
 
         return self.board[position]
+
+    def _check_pulse(self, piece):
+        if not piece.dead:
+            return
+
+        self.board[piece.died_at] = None
+
+        if piece.friendly:
+            living_set = self.friendly_pieces
+            dead_set = self.friendly_pieces_dead
+        else:
+            living_set = self.enemy_pieces
+            dead_set = self.enemy_pieces_dead
+
+        living_set.remove(piece)
+        dead_set.add(piece)
+
+    def _move_on_board(self, movement):
+        if self.board[movement.end] is not None:
+            raise RuntimeError('Cannot move onto an occupied space')
+
+        self.board[movement.start] = None
+        self.board[movement.end] = movement.piece
 
     def add_move(self, movement):
         """Add a move (a Movement object) to the board."""
