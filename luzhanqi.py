@@ -255,51 +255,57 @@ class LuzhanqiBoard:
 
         self.turn = 0
 
-    def _position_spec(self, position):
-        return self.board_spec[abs(position)]
+    @classmethod
+    def position_spec(cls, position):
+        return cls.board_spec[abs(position)]
 
-    def _position_match(self, position, matchval):
+    @classmethod
+    def position_match(cls, position, matchval):
         if isinstance(matchval, Space):
-            return self._position_spec(position) == matchval
+            return cls.position_spec(position) == matchval
         else:
             return match_sequence(position, matchval)
 
-    def _initial_positions(self):
+    @classmethod
+    def initial_positions(cls):
         nonneg = lambda i: i >= 0
 
         absolutes = (position
-                     for position in self.system.coords_matching(nonneg, nonneg)
-                     if self._position_spec(position).initial_placement)
+                     for position in cls.system.coords_matching(nonneg, nonneg)
+                     if cls.position_spec(position).initial_placement)
 
         x_map = lambda axis, x: axis.original_and_reflection(x)
-        return self.system.map_coord_components(absolutes, x=x_map)
+        return cls.system.map_coord_components(absolutes, x=x_map)
 
-    def _initial_enemy_positions(self):
-        initials = self._initial_positions()
+    @classmethod
+    def initial_enemy_positions(cls):
+        initials = cls.initial_positions()
 
         y_reflect = lambda axis, y: axis.reflection(y)
-        return self.system.map_coord_components(initials, y=y_reflect)
+        return cls.system.map_coord_components(initials, y=y_reflect)
 
     def _verify_attack(self, piece, end):
         if self.board[end] is not None:
             # no friendly fire and no attacking a safe space
             return (piece.friendly != self.board[end].friendly and
-                    not self._position_spec(end).safe)
+                    not self.position_spec(end).safe)
 
         return True
 
-    def _can_move(self, piece):
+    @classmethod
+    def can_move(cls, piece):
         # can't move a sessile piece
         if piece.spec is not None and piece.spec.sessile:
             return False
 
         # can't move off a quagmire space
-        if self._position_spec(piece.position).quagmire:
+        if cls.position_spec(piece.position).quagmire:
             return False
 
         return True
 
-    def _nonabsolute_railroad_lines(self):
+    @classmethod
+    def nonabsolute_railroad_lines(cls):
         def nonabsolute_matchvals(matchval):
             for component in matchval:
                 if not isinstance(component, tuple):
@@ -312,7 +318,7 @@ class LuzhanqiBoard:
                 else:
                     yield (component, reflection)
 
-        for line in self.railroads:
+        for line in cls.railroads:
             for nonabsolute in product(*nonabsolute_matchvals(line)):
                 yield nonabsolute
 
@@ -331,7 +337,7 @@ class LuzhanqiBoard:
                 yield tuple(val for val in values
                                 if val in line_component)
 
-        for line in self._nonabsolute_railroad_lines():
+        for line in self.nonabsolute_railroad_lines():
             if (match_sequence(position, line) and
                 (not piece.spec or
                  piece.spec.railroad_corners or
@@ -355,7 +361,7 @@ class LuzhanqiBoard:
     def _valid_moves_for_piece(self, piece):
         position = piece.position
 
-        if not self._can_move(piece):
+        if not self.can_move(piece):
             return set()
 
         either_side = lambda axis, i: (i - 1, i + 1)
@@ -368,11 +374,11 @@ class LuzhanqiBoard:
         diagonals = set(self.system.map_coord_components([position],
                                                          x=either_side,
                                                          y=either_side))
-        if self._position_spec(position).diagonals:
+        if self.position_spec(position).diagonals:
             valid_moves |= diagonals
         else:
             valid_moves |= {diagonal for diagonal in diagonals
-                                     if self._position_spec(diagonal).diagonals}
+                                     if self.position_spec(diagonal).diagonals}
 
         valid_moves |= set(self._railroad_moves(piece))
 
@@ -388,16 +394,16 @@ class LuzhanqiBoard:
             if self.board[end] is not None:
                 return False
 
-            if not self._position_spec(end).initial_placement:
+            if not self.position_spec(end).initial_placement:
                 return False
 
             if piece.spec and piece.spec.initial_placement:
-                return self._position_match(end, piece.spec.initial_placement)
+                return self.position_match(end, piece.spec.initial_placement)
 
             return True
 
         if (start == end or
-            not self._can_move(piece) or
+            not self.can_move(piece) or
             not self._verify_attack(piece, end)):
             return False
 
@@ -407,8 +413,8 @@ class LuzhanqiBoard:
 
         # diagonal move
         if (all(abs(start - end) == 1 for start, end in zip(start, end)) and
-            (self._position_spec(start).diagonals or
-             self._position_spec(end).diagonals)):
+            (self.position_spec(start).diagonals or
+             self.position_spec(end).diagonals)):
             return True
 
         if end in self._railroad_moves(piece):
@@ -425,7 +431,7 @@ class LuzhanqiBoard:
                 yield piece
 
     def _do_initial_placement(self, placement_order, get_placements):
-        positions = set(self._initial_positions())
+        positions = set(self.initial_positions())
 
         for piece in self._placement_order(placement_order):
             placement = piece.initial_placement
@@ -434,7 +440,7 @@ class LuzhanqiBoard:
             if placement is not None:
                 choices = (position
                            for position in positions
-                           if self._position_match(position, placement))
+                           if self.position_match(position, placement))
 
             choices = list(choices)
             if len(choices) < piece.initial_count:
@@ -491,7 +497,7 @@ class LuzhanqiBoard:
 
         self._do_initial_placement(placement_order, get_placements)
 
-        for position in self._initial_enemy_positions():
+        for position in self.initial_enemy_positions():
             new_piece = BoardPiece()
             new_piece.add_event(Movement(self, new_piece, position))
             self.enemy_pieces.add(new_piece)
@@ -553,7 +559,8 @@ class LuzhanqiBoard:
 
         self.log_board_with_markers(self._layout_markers(), level=level)
 
-    def log_board_with_markers(self, *marks_dicts, level=logging.DEBUG):
+    @classmethod
+    def log_board_with_markers(cls, *marks_dicts, level=logging.DEBUG):
         """Log the board with the given marks and log level or DEBUG.
 
         The arguments to this function should be dicts which map between
@@ -575,7 +582,7 @@ class LuzhanqiBoard:
                              (len(mark) for position, mark in all_marks.items()
                                         if position.x == col),
                              len(str(col)))
-                      for col in self.system.x]
+                      for col in cls.system.x]
         horizontal_pad_size = 2
         horizontal_pad = ' ' * horizontal_pad_size
 
@@ -596,7 +603,7 @@ class LuzhanqiBoard:
                 displays = (horizontal_pad +
                             str(marks.get(col, '')).center(width) +
                             horizontal_pad
-                            for col, width in zip(self.system.x, col_widths))
+                            for col, width in zip(cls.system.x, col_widths))
 
             line += sep.join(displays)
 
@@ -611,9 +618,9 @@ class LuzhanqiBoard:
         def sep_line():
             grid_line(edge='+', sep='+', dashes=True)
 
-        grid_line(edge=' ', sep=' ', marks={x: x for x in self.system.x})
+        grid_line(edge=' ', sep=' ', marks={x: x for x in cls.system.x})
 
-        for row in self.system.y:
+        for row in cls.system.y:
             sep_line()
             pad_vertical()
 
