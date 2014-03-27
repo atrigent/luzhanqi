@@ -244,17 +244,6 @@ class LuzhanqiBoard:
         (0, (0, 1))
     }
 
-    def __init__(self):
-        self.board = CoordinateSystemState(self.system)
-
-        self.friendly_pieces = set()
-        self.friendly_pieces_dead = set()
-
-        self.enemy_pieces = set()
-        self.enemy_pieces_dead = set()
-
-        self.turn = 0
-
     @classmethod
     def position_spec(cls, position):
         return cls.board_spec[abs(position)]
@@ -283,14 +272,6 @@ class LuzhanqiBoard:
 
         y_reflect = lambda axis, y: axis.reflection(y)
         return cls.system.map_coord_components(initials, y=y_reflect)
-
-    def _verify_attack(self, piece, end):
-        if self.board[end] is not None:
-            # no friendly fire and no attacking a safe space
-            return (piece.friendly != self.board[end].friendly and
-                    not self.position_spec(end).safe)
-
-        return True
 
     @classmethod
     def can_move(cls, piece):
@@ -321,6 +302,99 @@ class LuzhanqiBoard:
         for line in cls.railroads:
             for nonabsolute in product(*nonabsolute_matchvals(line)):
                 yield nonabsolute
+
+    @classmethod
+    def log_board_with_markers(cls, *marks_dicts, level=logging.DEBUG):
+        """Log the board with the given marks and log level or DEBUG.
+
+        The arguments to this function should be dicts which map between
+        positions on the board and a string to put at that position. If
+        multiple dicts are passed, they are merged into one with values
+        with the same keys joined with commas. The level argument is
+        keyword-only.
+        """
+
+        all_marks = {}
+        for marks_dict in marks_dicts:
+            for position, mark in marks_dict.items():
+                if position in all_marks:
+                    all_marks[position] += ',' + mark
+                else:
+                    all_marks[position] = mark
+
+        col_widths = [reduce(max,
+                             (len(mark) for position, mark in all_marks.items()
+                                        if position.x == col),
+                             len(str(col)))
+                      for col in cls.system.x]
+        horizontal_pad_size = 2
+        horizontal_pad = ' ' * horizontal_pad_size
+
+        vertical_pad_size = 1
+
+        def grid_line(edge='|', sep='|', row=None, dashes=False, marks={}):
+            if row:
+                line = str(row).rjust(2) + ' '
+            else:
+                line = '   '
+
+            line += edge
+
+            if dashes:
+                displays = ('-' * (horizontal_pad_size * 2 + width)
+                            for width in col_widths)
+            else:
+                displays = (horizontal_pad +
+                            str(marks.get(col, '')).center(width) +
+                            horizontal_pad
+                            for col, width in zip(cls.system.x, col_widths))
+
+            line += sep.join(displays)
+
+            line += edge
+
+            logging.log(level, line)
+
+        def pad_vertical():
+            for _ in range(vertical_pad_size):
+                grid_line()
+
+        def sep_line():
+            grid_line(edge='+', sep='+', dashes=True)
+
+        grid_line(edge=' ', sep=' ', marks={x: x for x in cls.system.x})
+
+        for row in cls.system.y:
+            sep_line()
+            pad_vertical()
+
+            pieces = {x: mark for (x, y), mark in all_marks.items()
+                              if y == row}
+
+            grid_line(row=row, marks=pieces)
+
+            pad_vertical()
+
+        sep_line()
+
+    def __init__(self):
+        self.board = CoordinateSystemState(self.system)
+
+        self.friendly_pieces = set()
+        self.friendly_pieces_dead = set()
+
+        self.enemy_pieces = set()
+        self.enemy_pieces_dead = set()
+
+        self.turn = 0
+
+    def _verify_attack(self, piece, end):
+        if self.board[end] is not None:
+            # no friendly fire and no attacking a safe space
+            return (piece.friendly != self.board[end].friendly and
+                    not self.position_spec(end).safe)
+
+        return True
 
     def _adjacent_railroad_moves(self, piece, position):
         if (position in self.system and
@@ -558,77 +632,3 @@ class LuzhanqiBoard:
         """Log the board layout with the given log level or DEBUG."""
 
         self.log_board_with_markers(self._layout_markers(), level=level)
-
-    @classmethod
-    def log_board_with_markers(cls, *marks_dicts, level=logging.DEBUG):
-        """Log the board with the given marks and log level or DEBUG.
-
-        The arguments to this function should be dicts which map between
-        positions on the board and a string to put at that position. If
-        multiple dicts are passed, they are merged into one with values
-        with the same keys joined with commas. The level argument is
-        keyword-only.
-        """
-
-        all_marks = {}
-        for marks_dict in marks_dicts:
-            for position, mark in marks_dict.items():
-                if position in all_marks:
-                    all_marks[position] += ',' + mark
-                else:
-                    all_marks[position] = mark
-
-        col_widths = [reduce(max,
-                             (len(mark) for position, mark in all_marks.items()
-                                        if position.x == col),
-                             len(str(col)))
-                      for col in cls.system.x]
-        horizontal_pad_size = 2
-        horizontal_pad = ' ' * horizontal_pad_size
-
-        vertical_pad_size = 1
-
-        def grid_line(edge='|', sep='|', row=None, dashes=False, marks={}):
-            if row:
-                line = str(row).rjust(2) + ' '
-            else:
-                line = '   '
-
-            line += edge
-
-            if dashes:
-                displays = ('-' * (horizontal_pad_size * 2 + width)
-                            for width in col_widths)
-            else:
-                displays = (horizontal_pad +
-                            str(marks.get(col, '')).center(width) +
-                            horizontal_pad
-                            for col, width in zip(cls.system.x, col_widths))
-
-            line += sep.join(displays)
-
-            line += edge
-
-            logging.log(level, line)
-
-        def pad_vertical():
-            for _ in range(vertical_pad_size):
-                grid_line()
-
-        def sep_line():
-            grid_line(edge='+', sep='+', dashes=True)
-
-        grid_line(edge=' ', sep=' ', marks={x: x for x in cls.system.x})
-
-        for row in cls.system.y:
-            sep_line()
-            pad_vertical()
-
-            pieces = {x: mark for (x, y), mark in all_marks.items()
-                              if y == row}
-
-            grid_line(row=row, marks=pieces)
-
-            pad_vertical()
-
-        sep_line()
