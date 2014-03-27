@@ -246,10 +246,18 @@ class LuzhanqiBoard:
 
     @classmethod
     def position_spec(cls, position):
+        """Get the Space object that corresponds to the given position."""
+
         return cls.board_spec[abs(position)]
 
     @classmethod
     def position_match(cls, position, matchval):
+        """Check whether a position matches a given matchval.
+
+        This supports both match_sequence based matching and matching based
+        on the Space object at the given position.
+        """
+
         if isinstance(matchval, Space):
             return cls.position_spec(position) == matchval
         else:
@@ -257,6 +265,8 @@ class LuzhanqiBoard:
 
     @classmethod
     def initial_positions(cls):
+        """Return the initial placement positions for a player."""
+
         nonneg = lambda i: i >= 0
 
         absolutes = (position
@@ -268,6 +278,8 @@ class LuzhanqiBoard:
 
     @classmethod
     def initial_enemy_positions(cls):
+        """Return the initial placement positions for a player's opponent."""
+
         initials = cls.initial_positions()
 
         y_reflect = lambda axis, y: axis.reflection(y)
@@ -275,6 +287,12 @@ class LuzhanqiBoard:
 
     @classmethod
     def can_move(cls, piece):
+        """Determine whether the given piece can move.
+
+        This is based both on the piece's type and on the space where it is
+        currently located.
+        """
+
         # can't move a sessile piece
         if piece.spec is not None and piece.spec.sessile:
             return False
@@ -287,6 +305,14 @@ class LuzhanqiBoard:
 
     @classmethod
     def nonabsolute_railroad_lines(cls):
+        """Return matchvals for the straight railroad lines on the board.
+
+        The naming of this function is based on the fact that it takes the
+        "absolute" railroad information in LuzhanqiBoard.railroads and
+        "de-absolutizes" it to describe the actual railroad lines on the
+        complete board.
+        """
+
         def nonabsolute_matchvals(matchval):
             for component in matchval:
                 if not isinstance(component, tuple):
@@ -462,6 +488,8 @@ class LuzhanqiBoard:
         return valid_moves
 
     def verify_move(self, piece, end):
+        """Verify that the given piece can move to the given end position."""
+
         start = piece.position
 
         if start is None:
