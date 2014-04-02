@@ -22,8 +22,9 @@ Piece = namedtuple_with_defaults('Piece', 'name', 'symbol', 'initial_count',
                                  initial_placement=None,
                                  lose_on_defeat=False)
 
-# Represents an attack - the attacked piece and the attack outcome.
-AttackInfo = namedtuple('AttackInfo', 'piece outcome')
+# Represents an attack - the attacked piece, whether we know the winner,
+# and the winning piece (which will only be meaningful if we know it)
+AttackInfo = namedtuple('AttackInfo', 'piece theoretical winner')
 
 class Movement:
     """Represents a movement of a piece to a position on a board.
@@ -64,7 +65,20 @@ class Movement:
 
         end_piece = board.get(end)
         if end_piece is not None:
-            self.attack = AttackInfo(end_piece, outcome)
+            theoretical = False
+            if outcome == 'win':
+                winner = piece
+            elif outcome == 'loss':
+                winner = end_piece
+            elif outcome == 'tie':
+                winner = None
+            elif outcome == None:
+                theoretical = True
+                winner = None
+            else:
+                raise ValueError('Invalid outcome value!')
+
+            self.attack = AttackInfo(end_piece, theoretical, winner)
         else:
             if outcome is not None:
                 raise ValueError('This is not an attack!')
@@ -103,14 +117,7 @@ class BoardPiece:
         if event.attack is None:
             return None
 
-        if event.piece is self:
-            safe_outcome = 'win'
-        elif event.attack.piece is self:
-            safe_outcome = 'loss'
-        else:
-            return None
-
-        return event.attack.outcome != safe_outcome
+        return event.attack.winner is not self
 
     def add_event(self, event):
         """Add the given event to this piece's event history."""
@@ -122,6 +129,9 @@ class BoardPiece:
         if event.piece is self:
             self.movements.append(event)
         elif event.attack is not None and event.attack.piece is self:
+            if event.attack.theoretical:
+                raise RuntimeError('A theoretical attack cannot be an event!')
+
             self.attacks.append(event)
         else:
             raise RuntimeError('This event is not relevant to this piece')
