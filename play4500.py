@@ -146,7 +146,7 @@ def parse_movement(board, move):
     if piece is None:
         return None
 
-    return Movement(board, board.get(start), end, outcome)
+    return Movement(board, piece, end, outcome)
 
 invalid_move = re.compile('^Invalid\s+Board\s+Move\s+(.*)$')
 flag_pos = re.compile('^F\s+(\w+)$')
