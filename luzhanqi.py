@@ -101,6 +101,12 @@ class BoardPiece:
         self.attacks = []
         self.spec = spec
 
+    def __str__(self):
+        if self.friendly:
+            return '+' + self.spec.symbol
+        else:
+            return '-?'
+
     def __hash__(self):
         if self.initial is None:
             raise TypeError()
@@ -654,16 +660,7 @@ class LuzhanqiBoard:
         self.turn += 1
 
     def _layout_markers(self):
-        def piece_display(piece):
-            if piece is None:
-                return '  '
-
-            if piece.friendly:
-                return '+' + piece.spec.symbol
-            else:
-                return '-?'
-
-        return {piece.position: piece_display(piece)
+        return {piece.position: str(piece)
                 for piece in self.friendly_pieces | self.enemy_pieces}
 
     def log_board_layout(self, level=logging.DEBUG):
