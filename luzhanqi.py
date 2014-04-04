@@ -114,12 +114,16 @@ class BoardPiece:
         self.movements = []
         self.attacks = []
         self.spec = spec
+        self.maybies = None
+
+        if not spec:
+            self.maybies = LuzhanqiBoard.pieces.copy()
 
     def __str__(self):
         if self.friendly:
             return '+' + self.spec.symbol
         else:
-            return '-?'
+            return '-' + ','.join(maybe.symbol for maybe in self.maybies)
 
     def __hash__(self):
         if self.initial is None:
@@ -139,6 +143,35 @@ class BoardPiece:
 
         return event.attack.winner is not self
 
+    def _event_possible_for_type(self, event, spec):
+        if event.start is None:
+            initial = spec.initial_placement
+
+            if initial and not LuzhanqiBoard.position_match(abs(event.end),
+                                                            initial):
+                return False
+        elif spec.sessile and event.piece is self:
+            return False
+        elif (not spec.railroad_corners and event.piece is self and
+              event.railroad_corner):
+            return False
+        elif event.attack is not None:
+            attacker_type, attacked_type = None, None
+            if event.piece is self:
+                attacker_type = spec
+            else:
+                attacked_type = spec
+
+            simulated = LuzhanqiBoard.simulate_attack(event.piece,
+                                                      attacker_type,
+                                                      event.attack.piece,
+                                                      attacked_type)
+
+            if simulated is not event.attack.winner:
+                return False
+
+        return True
+
     def add_event(self, event):
         """Add the given event to this piece's event history."""
 
@@ -157,6 +190,14 @@ class BoardPiece:
             raise RuntimeError('This event is not relevant to this piece')
 
         self.events.append(event)
+
+        if self.maybies is not None:
+            to_remove = set()
+            for piece in self.maybies:
+                if not self._event_possible_for_type(event, piece):
+                    to_remove.add(piece)
+
+            self.maybies -= to_remove
 
     @property
     def initial(self):
