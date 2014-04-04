@@ -770,3 +770,8 @@ class LuzhanqiBoard:
         """Log the board layout with the given log level or DEBUG."""
 
         self.log_board_with_markers(self._layout_markers(), level=level)
+
+    def log_defeated_pieces(self):
+        for piece in self.enemy_pieces_dead:
+            logging.debug('{} ({}): {}'.format(piece.initial, piece.died_at,
+                                               piece))
