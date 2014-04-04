@@ -123,7 +123,8 @@ class BoardPiece:
         if self.friendly:
             return '+' + self.spec.symbol
         else:
-            return '-' + ','.join(maybe.symbol for maybe in self.maybies)
+            return '-' + ','.join(sorted(maybe.symbol
+                                         for maybe in self.maybies))
 
     def __hash__(self):
         if self.initial is None:
