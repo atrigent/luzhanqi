@@ -275,6 +275,45 @@ class LuzhanqiBoard:
     }
 
     @classmethod
+    def simulate_attack(cls, attacker, attacker_type, attacked, attacked_type):
+        def get_type(piece, spec):
+            if spec:
+                if piece.spec:
+                    raise ValueError('This piece already has a spec!')
+
+                return spec
+            else:
+                return piece.spec
+
+        attacker_type = get_type(attacker, attacker_type)
+        attacked_type = get_type(attacked, attacked_type)
+
+        if attacker_type.sessile:
+            raise RuntimeError('Sessile pieces cannot attack!')
+
+        if attacker_type.order and attacked_type.order:
+            if attacker_type.order > attacked_type.order:
+                return attacker
+            elif attacked_type.order > attacker_type.order:
+                return attacked
+
+            return None
+
+        if attacker_type.bomb:
+            return None
+        elif attacked_type.bomb:
+            if attacked_type.sessile and attacker_type.defeats_sessile_bombs:
+                return attacker
+
+            return None
+
+        # special case - anything wins against the flag
+        if attacked_type == cls.FLAG:
+            return attacker
+
+        raise RuntimeError('Cannot determine winner???')
+
+    @classmethod
     def position_spec(cls, position):
         """Get the Space object that corresponds to the given position."""
 
