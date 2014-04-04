@@ -40,6 +40,8 @@ class Movement:
     - turn: the turn on which the move was made
         (0 means initial placement)
     - attack: an AttackInfo if this is an attack move
+    - move_type: the strings INITIAL, ROAD, or RAILROAD,
+        depending on how the move was made
     """
 
     def __init__(self, board, piece, end, outcome=None):
@@ -60,7 +62,8 @@ class Movement:
         if (self.start is None) != (self.turn == 0):
             raise ValueError()
 
-        if not self.board.verify_move(self.piece, self.end):
+        self.move_type = self.board.verify_move(self.piece, self.end)
+        if self.move_type is None:
             raise ValueError()
 
         end_piece = board.get(end)
@@ -504,41 +507,49 @@ class LuzhanqiBoard:
         return valid_moves
 
     def verify_move(self, piece, end):
-        """Verify that the given piece can move to the given end position."""
+        """Verify that the given piece can move to the given end position.
+
+        Returns the strings INITIAL, ROAD, or RAILROAD if the move is a
+        valid move. This string indicates how the move was made. Returns
+        None if the move is invalid.
+        """
 
         start = piece.position
 
         if start is None:
             if self.board[end] is not None:
-                return False
+                return None
 
             if not self.position_spec(end).initial_placement:
-                return False
+                return None
 
             if piece.spec and piece.spec.initial_placement:
-                return self.position_match(end, piece.spec.initial_placement)
+                if self.position_match(end, piece.spec.initial_placement):
+                    return 'INITIAL'
+                else:
+                    return None
 
-            return True
+            return 'INITIAL'
 
         if (start == end or
             not self.can_move(piece) or
             not self._verify_attack(piece, end)):
-            return False
+            return None
 
         # horizontal/vertical move
         if sum(abs(start - end) for start, end in zip(start, end)) == 1:
-            return True
+            return 'ROAD'
 
         # diagonal move
         if (all(abs(start - end) == 1 for start, end in zip(start, end)) and
             (self.position_spec(start).diagonals or
              self.position_spec(end).diagonals)):
-            return True
+            return 'ROAD'
 
         if end in self._railroad_moves(piece):
-            return True
+            return 'RAILROAD'
 
-        return False
+        return None
 
     def _placement_order(self, order):
         for piece in order:
