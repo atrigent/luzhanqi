@@ -554,16 +554,16 @@ class LuzhanqiBoard:
                         yield components
 
     def _railroad_moves(self, piece):
-        def adjacent(position):
+        def adjacent(position, label):
             if (position in self.system and
                 self.board[position] is not None and
                 self.board[position] != piece):
                 return
 
             for adj in self.adjacent_railroad_moves(piece, position):
-                yield adj
+                yield adj, label
 
-        moves = find_connected_component(piece.position, adjacent)
+        moves = find_connected_component(piece.position, None, adjacent)
 
         for move in moves:
             if move != piece.position:

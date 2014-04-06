@@ -80,23 +80,27 @@ def sequence_getitem(getitem):
 
     return new_getitem
 
-def find_connected_component(vertex, f):
-    """Given a function and initial vertex, uses the function
-    as an iterator to find accessible adjacent vertices, which
-    are checked for more accessible vertices, and added to the
-    set of explored vertices.
+def find_connected_component(vertex, label, f):
+    """Given a function, an initial vertex, and its label, uses the function
+    as an iterator to find accessible adjacent vertices and their labels,
+    which are checked for more accessible vertices, and added to the set of
+    explored vertices.
+
+    The return value is a dictionary which maps vertices to labels.
 
     The graph traversal strategy is breadth-first search.
     """
 
-    explored = {vertex}
+    explored = {vertex: label}
     frontier = deque(explored)
 
     while len(frontier) > 0:
         cur = frontier.popleft()
+        cur_label = explored[cur]
 
-        for adj in f(cur):
+        for adj, adj_label in f(cur, cur_label):
             if adj not in explored:
                 frontier.append(adj)
+                explored[adj] = adj_label
 
     return explored
