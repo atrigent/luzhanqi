@@ -455,7 +455,7 @@ class LuzhanqiBoard:
         for marks_dict in marks_dicts:
             for position, mark in marks_dict.items():
                 if position in all_marks:
-                    all_marks[position] += ',' + mark
+                    all_marks[position] += ';' + mark
                 else:
                     all_marks[position] = mark
 
