@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, deque
 
 def namedtuple_with_defaults(typename, *args, **kwargs):
     """Like namedtuple, but allows specifying defaults.
@@ -83,16 +83,20 @@ def sequence_getitem(getitem):
 def find_connected_component(vertex, f):
     """Given a function and initial vertex, uses the function
     as an iterator to find accessible adjacent vertices, which
-    are recursively checked for more accessible vertices, and adds
-    them to the set of connections.
+    are checked for more accessible vertices, and added to the
+    set of explored vertices.
+
+    The graph traversal strategy is breadth-first search.
     """
-    connections = set()
 
-    def iterate_connections(origin):
-        connections.add(origin)
-        for coord in f(origin):
-            if coord not in connections:
-                iterate_connections(coord)
+    explored = {vertex}
+    frontier = deque(explored)
 
-    iterate_connections(vertex)
-    return connections
+    while len(frontier) > 0:
+        cur = frontier.popleft()
+
+        for adj in f(cur):
+            if adj not in explored:
+                frontier.append(adj)
+
+    return explored
