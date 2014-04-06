@@ -534,7 +534,7 @@ class LuzhanqiBoard:
         return True
 
     @classmethod
-    def adjacent_railroad_moves(cls, piece, position):
+    def adjacent_railroad_moves(cls, piece, position, corner):
         def component_values(line):
             for position_component, line_component in zip(position, line):
                 values = (position_component - 1,
@@ -549,28 +549,36 @@ class LuzhanqiBoard:
                 (not piece.spec or
                  piece.spec.railroad_corners or
                  match_sequence(piece.position, line))):
+                new_corner = corner
+                if new_corner is False:
+                    new_corner = not match_sequence(piece.position, line)
+
                 for components in product(*component_values(line)):
                     if components != position:
-                        yield components
+                        yield components, new_corner
 
     def _railroad_moves(self, piece):
-        def adjacent(position, label):
+        def adjacent(position, corner):
             if (position in self.system and
                 self.board[position] is not None and
                 self.board[position] != piece):
                 return
 
-            for adj in self.adjacent_railroad_moves(piece, position):
-                yield adj, label
+            for adj, adj_corner in self.adjacent_railroad_moves(piece, position,
+                                                                corner):
+                yield adj, adj_corner
 
-        moves = find_connected_component(piece.position, None, adjacent)
+        moves = find_connected_component(piece.position, False, adjacent)
 
-        for move in moves:
-            if move != piece.position:
-                try:
-                    yield self.Coord(*move)
-                except ValueError:
-                    pass
+        def to_result(moves):
+            for move, corner in moves.items():
+                if move != piece.position:
+                    try:
+                        yield self.Coord(*move), corner
+                    except ValueError:
+                        pass
+
+        return dict(to_result(moves))
 
     def _valid_moves_for_piece(self, piece):
         position = piece.position
