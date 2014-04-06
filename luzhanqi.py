@@ -88,14 +88,6 @@ class Movement:
 
             self.attack = None
 
-        if self.move_type == 'RAILROAD':
-            lines = LuzhanqiBoard.nonabsolute_railroad_lines()
-
-            if all(not match_sequence(self.end, line)
-                   for line in lines
-                   if match_sequence(self.start, line)):
-                self.move_type = 'RAILROAD_CORNER'
-
 class BoardPiece:
     """Represents a piece on the board with a type and an event history.
 
@@ -646,8 +638,12 @@ class LuzhanqiBoard:
              self.position_spec(end).diagonals)):
             return 'ROAD'
 
-        if end in self._railroad_moves(piece):
-            return 'RAILROAD'
+        railroad_moves = self._railroad_moves(piece)
+        if end in railroad_moves:
+            if railroad_moves[end]: # if it is a corner move
+                return 'RAILROAD_CORNER'
+            else:
+                return 'RAILROAD'
 
         return None
 
