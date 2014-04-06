@@ -1,6 +1,6 @@
 from collections import namedtuple, defaultdict
 from itertools import product
-from functools import reduce, partial
+from functools import reduce
 import logging
 
 from misc import (namedtuple_with_defaults, match_sequence,
@@ -533,12 +533,8 @@ class LuzhanqiBoard:
 
         return True
 
-    def _adjacent_railroad_moves(self, piece, position):
-        if (position in self.system and
-            self.board[position] is not None and
-            self.board[position] != piece):
-            return
-
+    @classmethod
+    def adjacent_railroad_moves(cls, piece, position):
         def component_values(line):
             for position_component, line_component in zip(position, line):
                 values = (position_component - 1,
@@ -548,7 +544,7 @@ class LuzhanqiBoard:
                 yield tuple(val for val in values
                                 if val in line_component)
 
-        for line in self.nonabsolute_railroad_lines():
+        for line in cls.nonabsolute_railroad_lines():
             if (match_sequence(position, line) and
                 (not piece.spec or
                  piece.spec.railroad_corners or
@@ -558,9 +554,16 @@ class LuzhanqiBoard:
                         yield components
 
     def _railroad_moves(self, piece):
-        moves = find_connected_component(piece.position,
-                                         partial(self._adjacent_railroad_moves,
-                                                 piece))
+        def adjacent(position):
+            if (position in self.system and
+                self.board[position] is not None and
+                self.board[position] != piece):
+                return
+
+            for adj in self.adjacent_railroad_moves(piece, position):
+                yield adj
+
+        moves = find_connected_component(piece.position, adjacent)
 
         for move in moves:
             if move != piece.position:
