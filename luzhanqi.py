@@ -40,11 +40,8 @@ class Movement:
     - turn: the turn on which the move was made
         (0 means initial placement)
     - attack: an AttackInfo if this is an attack move
-    - move_type: the strings INITIAL, ROAD, or RAILROAD,
-        depending on how the move was made
-    - railroad_corner: None if move_type is not RAILROAD,
-        and True or False if this move went around a
-        railroad corner
+    - move_type: the strings INITIAL, ROAD, RAILROAD,
+        or RAILROAD_CORNER, depending on how the move was made
     """
 
     def __init__(self, board, piece, end, outcome=None):
@@ -91,13 +88,13 @@ class Movement:
 
             self.attack = None
 
-        self.railroad_corner = None
         if self.move_type == 'RAILROAD':
             lines = LuzhanqiBoard.nonabsolute_railroad_lines()
 
-            self.railroad_corner = all(not match_sequence(self.end, line)
-                                       for line in lines
-                                       if match_sequence(self.start, line))
+            if all(not match_sequence(self.end, line)
+                   for line in lines
+                   if match_sequence(self.start, line)):
+                self.move_type = 'RAILROAD_CORNER'
 
 class BoardPiece:
     """Represents a piece on the board with a type and an event history.
@@ -154,7 +151,7 @@ class BoardPiece:
         elif spec.sessile and event.piece is self:
             return False
         elif (not spec.railroad_corners and event.piece is self and
-              event.railroad_corner):
+              event.move_type == 'RAILROAD_CORNER'):
             return False
         elif event.attack is not None:
             attacker_type, attacked_type = None, None
