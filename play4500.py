@@ -234,7 +234,7 @@ def do_move(game):
 
 def main():
     # If init_argparser() returns, the command line arguments were correct
-    player, time = init_argparser()
+    player, timelimit = init_argparser()
     game = None
 
     log_level = os.environ.get('PLAY4500_LOGGING', None)
