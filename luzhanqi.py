@@ -523,7 +523,7 @@ class LuzhanqiBoard:
         return True
 
     @classmethod
-    def adjacent_railroad_moves(cls, piece, position, corner):
+    def adjacent_railroad_moves(cls, spec, orig_position, position, corner):
         def component_values(line):
             for position_component, line_component in zip(position, line):
                 values = (position_component - 1,
@@ -535,12 +535,12 @@ class LuzhanqiBoard:
 
         for line in cls.nonabsolute_railroad_lines():
             if (match_sequence(position, line) and
-                (not piece.spec or
-                 piece.spec.railroad_corners or
-                 match_sequence(piece.position, line))):
+                (not spec or
+                 spec.railroad_corners or
+                 match_sequence(orig_position, line))):
                 new_corner = corner
                 if new_corner is False:
-                    new_corner = not match_sequence(piece.position, line)
+                    new_corner = not match_sequence(orig_position, line)
 
                 for components in product(*component_values(line)):
                     if components != position:
@@ -553,7 +553,9 @@ class LuzhanqiBoard:
                 self.board[position] != piece):
                 return
 
-            for adj, adj_corner in self.adjacent_railroad_moves(piece, position,
+            for adj, adj_corner in self.adjacent_railroad_moves(piece.spec,
+                                                                piece.position,
+                                                                position,
                                                                 corner):
                 yield adj, adj_corner
 
