@@ -8,6 +8,7 @@ import argparse
 import logging
 import atexit
 import random
+import time
 import sys
 import re
 
@@ -202,7 +203,7 @@ def receive_message(game):
 
         logging.error('parsing failed for "' + message + '"')
 
-def do_move(game):
+def do_move(game, rng):
     """Picks a move to make and sends it to the referee.
 
     Moves are currently chosen randomly.
@@ -227,7 +228,7 @@ def do_move(game):
         write('forfeit')
         return
 
-    move = random.sample(moves, 1)[0]
+    move = rng.sample(moves, 1)[0]
     write('({0} {1})'.format(move.start, move.end))
 
     receive_message(game)
@@ -258,12 +259,21 @@ def main():
 
     sys.excepthook = log_traceback
 
+    rand_seed = os.environ.get('PLAY4500_RANDSEED', None)
+    if rand_seed is not None:
+        rand_seed = int(rand_seed)
+    else:
+        rand_seed = int(time.time())
+
+    logging.info('Random seed: ' + str(rand_seed))
+    rng = random.Random(rand_seed)
+
     placement_order = [LuzhanqiBoard.FLAG,
                        LuzhanqiBoard.LANDMINE,
                        LuzhanqiBoard.BOMB]
 
     def get_placements(piece, choices):
-        return random.sample(choices, piece.initial_count)
+        return rng.sample(choices, piece.initial_count)
 
     game = LuzhanqiBoard()
     game.setup(placement_order, get_placements)
@@ -274,11 +284,11 @@ def main():
           ')')
 
     if player == 1:
-        do_move(game)
+        do_move(game, rng)
 
     while True:
         receive_message(game)
-        do_move(game)
+        do_move(game, rng)
 
 if __name__ == '__main__':
     if os.environ.get('PLAY4500_PROFILING', None) == '1':
