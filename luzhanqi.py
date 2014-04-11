@@ -571,27 +571,28 @@ class LuzhanqiBoard:
 
         return dict(to_result(moves))
 
+    @classmethod
+    def _road_moves(cls, position):
+        either_side = lambda axis, i: (i - 1, i + 1)
+        for end in cls.system.map_coord_components_separately([position],
+                                                              x=either_side,
+                                                              y=either_side):
+            yield end
+
+        all_diagonals = cls.position_spec(position).diagonals
+        for end in cls.system.map_coord_components([position],
+                                                   x=either_side,
+                                                   y=either_side):
+            if all_diagonals or cls.position_spec(end).diagonals:
+                yield end
+
     def _valid_moves_for_piece(self, piece):
         position = piece.position
 
         if not self.can_move(piece):
             return set()
 
-        either_side = lambda axis, i: (i - 1, i + 1)
-        valid_moves = set(self.system.map_coord_components_separately(
-                                          [position],
-                                          x=either_side,
-                                          y=either_side
-                                      ))
-
-        diagonals = set(self.system.map_coord_components([position],
-                                                         x=either_side,
-                                                         y=either_side))
-        if self.position_spec(position).diagonals:
-            valid_moves |= diagonals
-        else:
-            valid_moves |= {diagonal for diagonal in diagonals
-                                     if self.position_spec(diagonal).diagonals}
+        valid_moves = set(self._road_moves(position))
 
         valid_moves |= set(self._railroad_moves(piece))
 
@@ -630,14 +631,7 @@ class LuzhanqiBoard:
             not self._verify_attack(piece, end)):
             return None
 
-        # horizontal/vertical move
-        if sum(abs(start - end) for start, end in zip(start, end)) == 1:
-            return 'ROAD'
-
-        # diagonal move
-        if (all(abs(start - end) == 1 for start, end in zip(start, end)) and
-            (self.position_spec(start).diagonals or
-             self.position_spec(end).diagonals)):
+        if end in self._road_moves(start):
             return 'ROAD'
 
         railroad_moves = self._railroad_moves(piece)
