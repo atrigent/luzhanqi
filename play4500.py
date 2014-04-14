@@ -93,7 +93,8 @@ system.Coord.__str__ = stringify_coord
 coord_regex = re.compile('^([A-E])(\d{1,2})$')
 
 def parse_coord(coord):
-    """Form a Coord object from a message syntax representation of a coordinate.
+    """Form a Coord object from a message syntax representation of a
+    coordinate.
 
     See stringify_coord for a description of the syntax.
     """
