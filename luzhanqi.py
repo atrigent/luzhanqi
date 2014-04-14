@@ -440,6 +440,9 @@ class LuzhanqiBoard:
         keyword-only.
         """
 
+        if not logging.getLogger().isEnabledFor(level):
+            return
+
         all_marks = {}
         for marks_dict in marks_dicts:
             for position, mark in marks_dict.items():
