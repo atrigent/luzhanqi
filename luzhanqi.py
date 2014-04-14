@@ -575,7 +575,13 @@ class LuzhanqiBoard:
         return dict(to_result(moves))
 
     @classmethod
-    def _road_moves(cls, position):
+    def road_moves(cls, position):
+        """Gets the road moves that a piece at the given position could make.
+
+        This a generator which produces 2-tuples of Coord objects
+        and the string 'ROAD'.
+        """
+
         either_side = lambda axis, i: (i - 1, i + 1)
         for end in cls.system.map_coord_components_separately([position],
                                                               x=either_side,
@@ -595,7 +601,7 @@ class LuzhanqiBoard:
         if not self.can_move(piece):
             return set()
 
-        valid_moves = set(self._road_moves(position))
+        valid_moves = set(self.road_moves(position))
 
         valid_moves |= set(self._railroad_moves(piece))
 
@@ -634,7 +640,7 @@ class LuzhanqiBoard:
             not self._verify_attack(piece, end)):
             return None
 
-        if end in self._road_moves(start):
+        if end in self.road_moves(start):
             return 'ROAD'
 
         railroad_moves = self._railroad_moves(piece)
