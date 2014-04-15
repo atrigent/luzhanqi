@@ -321,6 +321,13 @@ class LuzhanqiBoard:
 
     @classmethod
     def simulate_attack(cls, attacker, attacker_type, attacked, attacked_type):
+        """Determine whether the attacker or the attackee would win if
+        they had the given types.
+
+        The return value is either one of the piece objects passed or
+        None if neither piece would win (a tie).
+        """
+
         def get_type(piece, spec):
             if spec:
                 if piece.spec:
@@ -543,6 +550,22 @@ class LuzhanqiBoard:
     @classmethod
     @memoize_generator
     def adjacent_railroad_moves(cls, spec, orig_position, position, corner):
+        """Gets adjacent railroad moves and is used for traversing the
+        railroad.
+
+        To use this function correctly, you must know:
+        - the type of a piece
+        - which is at a specific position
+        - that it can travel to some other position on the railroad
+        - whether traveling to this other position consists of moving
+          around a railroad corner
+
+        These things correspond to the arguments to the function.
+
+        The return value is a dict mapping Coord objects to either
+        'RAILROAD' or 'RAILROAD_CORNER', depending on the move type.
+        """
+
         def component_values(line):
             for position_component, line_component in zip(position, line):
                 values = (position_component - 1,
