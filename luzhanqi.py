@@ -45,7 +45,7 @@ class Movement:
         or RAILROAD_CORNER, depending on how the move was made
     """
 
-    def __init__(self, board, piece, end, outcome=None):
+    def __init__(self, board, piece, end, outcome=None, move_types=None):
         """Initialize the movement.
 
         board is the LuzhanqiBoard on which the movement is to be
@@ -63,9 +63,12 @@ class Movement:
         if (self.start is None) != (self.turn == 0):
             raise ValueError()
 
-        self.move_types = self.board.verify_move(self.piece, self.end)
-        if self.move_types is None:
-            raise ValueError()
+        if move_types:
+            self.move_types = move_types
+        else:
+            self.move_types = self.board.verify_move(self.piece, self.end)
+            if self.move_types is None:
+                raise ValueError()
 
         end_piece = board.get(end)
         if end_piece is not None:
@@ -609,8 +612,8 @@ class LuzhanqiBoard:
 
         valid_moves = self._all_moves(piece)
 
-        valid_moves = {Movement(self, piece, move)
-                       for move in valid_moves
+        valid_moves = {Movement(self, piece, move, move_types=move_types)
+                       for move, move_types in valid_moves.items()
                        if self._verify_attack(piece, move)}
 
         return valid_moves
