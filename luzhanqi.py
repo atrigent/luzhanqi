@@ -768,6 +768,11 @@ class LuzhanqiBoard:
 
         return self.friendly_pieces
 
+    def get_living_enemy_pieces(self):
+        """Returns the set of enemy pieces that are still alive."""
+
+        return self.enemy_pieces
+
     def get(self, position):
         """Get a piece on the board at the given position."""
 
