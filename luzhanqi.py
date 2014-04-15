@@ -608,8 +608,9 @@ class LuzhanqiBoard:
 
         valid_moves |= set(self._railroad_moves(piece))
 
-        valid_moves = {move for move in valid_moves
-                            if self._verify_attack(piece, move)}
+        valid_moves = {Movement(self, piece, move)
+                       for move in valid_moves
+                       if self._verify_attack(piece, move)}
 
         return valid_moves
 
@@ -720,7 +721,7 @@ class LuzhanqiBoard:
 
         for piece in self.friendly_pieces:
             for move in self._valid_moves_for_piece(piece):
-               yield Movement(self, piece, move)
+               yield move
 
     def get_living_pieces(self):
         """Returns the set of our pieces that are still alive."""
