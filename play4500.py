@@ -183,6 +183,8 @@ def receive_message(game):
         there was a tie.
     """
 
+    marshal_died = False
+
     while True:
         message = input()
 
@@ -194,12 +196,31 @@ def receive_message(game):
         if victory.match(message):
             sys.exit()
 
-        if flag_pos.match(message):
+        match = flag_pos.match(message)
+        if match:
+            coord = parse_coord(match.group(1))
+
+            # the referee sends F messages to us about our own
+            # flag - we need to ignore those
+            if coord.y < 0:
+                game.get(coord).force_inference(game.FLAG)
+                marshal_died = True
+
             continue
 
         move = parse_movement(game, message)
         if move is not None:
             game.add_move(move)
+
+            if marshal_died:
+                if move.piece.friendly:
+                    opponent_marshal = move.attack.piece
+                else:
+                    opponent_marshal = move.piece
+
+                opponent_marshal.force_inference(game.MARSHAL)
+                marshal_died = False
+
             return
 
         logging.error('parsing failed for "' + message + '"')

@@ -186,6 +186,23 @@ class BoardPiece:
 
             self.maybies -= to_remove
 
+    def force_inference(self, spec):
+        """Allows specifying that an opponent's piece is definitely a certain
+        type of piece.
+
+        This can be used if some external knowledge allows us to conclude
+        that a piece is a certain type of piece.
+        """
+
+        if self.spec is not None:
+            raise RuntimError('We already know what this piece is!')
+
+        if spec not in self.maybies:
+            raise RuntimError('Attempt to infer that a piece is something '
+                              'that it cannot be')
+
+        self.maybies = {spec}
+
     @property
     def initial(self):
         """Get this piece's initial position.
