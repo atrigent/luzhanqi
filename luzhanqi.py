@@ -662,7 +662,7 @@ class LuzhanqiBoard:
                            for position in positions
                            if self.position_match(position, placement))
 
-            choices = list(choices)
+            choices = set(choices)
             if len(choices) < piece.initial_count:
                 raise RuntimeError("Not enough choices to place piece!")
 
