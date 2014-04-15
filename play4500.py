@@ -294,7 +294,27 @@ def main():
                        LuzhanqiBoard.LANDMINE,
                        LuzhanqiBoard.BOMB]
 
+    def good_landmine_placements(choices):
+        for choice in choices:
+            if LuzhanqiBoard.position_spec(choice).quagmire:
+                return {choice}
+
+        for hq in [game.Coord(-1, 6), game.Coord(1, 6)]:
+            if game.get(hq).spec == game.FLAG:
+                flag_loc = hq
+                break
+
+        infront = game.Coord(flag_loc.x, flag_loc.y - 1)
+        if infront in choices:
+            return {infront}
+
+        return choices & {game.Coord(flag_loc.x + 1, flag_loc.y),
+                          game.Coord(flag_loc.x - 1, flag_loc.y)}
+
     def get_placement(piece, choices):
+        if piece == LuzhanqiBoard.LANDMINE:
+            choices = good_landmine_placements(choices)
+
         return rng.sample(choices, 1)[0]
 
     game = LuzhanqiBoard()
