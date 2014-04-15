@@ -619,11 +619,9 @@ class LuzhanqiBoard:
             if not self.position_spec(end).initial_placement:
                 return None
 
-            if piece.spec and piece.spec.initial_placement:
-                if self.position_match(end, piece.spec.initial_placement):
-                    return 'INITIAL'
-                else:
-                    return None
+            if (piece.spec and piece.spec.initial_placement and
+                not self.position_match(end, piece.spec.initial_placement)):
+                return None
 
             return 'INITIAL'
 
