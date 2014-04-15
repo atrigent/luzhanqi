@@ -4,7 +4,7 @@ from functools import reduce
 import logging
 
 from misc import (namedtuple_with_defaults, match_sequence,
-                  find_connected_component)
+                  find_connected_component, memoize_generator)
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
                          CoordinateSystemState)
 
@@ -404,6 +404,7 @@ class LuzhanqiBoard:
         return True
 
     @classmethod
+    @memoize_generator
     def nonabsolute_railroad_lines(cls):
         """Return matchvals for the straight railroad lines on the board.
 
@@ -526,6 +527,7 @@ class LuzhanqiBoard:
         return True
 
     @classmethod
+    @memoize_generator
     def adjacent_railroad_moves(cls, spec, orig_position, position, corner):
         def component_values(line):
             for position_component, line_component in zip(position, line):
@@ -575,6 +577,7 @@ class LuzhanqiBoard:
         return dict(to_result(moves))
 
     @classmethod
+    @memoize_generator
     def road_moves(cls, position):
         """Gets the road moves that a piece at the given position could make.
 

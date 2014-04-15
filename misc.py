@@ -1,4 +1,5 @@
 from collections import namedtuple, deque
+from itertools import count
 
 def namedtuple_with_defaults(typename, *args, **kwargs):
     """Like namedtuple, but allows specifying defaults.
@@ -104,3 +105,24 @@ def find_connected_component(vertex, label, f):
                 explored[adj] = adj_label
 
     return explored
+
+def memoize_generator(g):
+    cache = {}
+
+    def wrapper(*args):
+        args = tuple(args)
+
+        try:
+            iterator, l = cache[args]
+        except KeyError:
+            iterator = g(*args)
+            l = []
+            cache[args] = iterator, l
+
+        for i in count():
+            if i == len(l):
+                l.append(next(iterator))
+
+            yield l[i]
+
+    return wrapper
