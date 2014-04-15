@@ -126,3 +126,12 @@ def memoize_generator(g):
             yield l[i]
 
     return wrapper
+
+def merge_dicts(*dicts):
+    merged = {}
+
+    for d in dicts:
+        for key, val in d.items():
+            merged.setdefault(key, set()).add(val)
+
+    return merged

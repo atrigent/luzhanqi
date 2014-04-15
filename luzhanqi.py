@@ -4,7 +4,8 @@ from functools import reduce
 import logging
 
 from misc import (namedtuple_with_defaults, match_sequence,
-                  find_connected_component, memoize_generator)
+                  find_connected_component, memoize_generator,
+                  merge_dicts)
 from coordinates import (CenteredOriginAxis, CoordinateSystem,
                          CoordinateSystemState)
 
@@ -40,7 +41,7 @@ class Movement:
     - turn: the turn on which the move was made
         (0 means initial placement)
     - attack: an AttackInfo if this is an attack move
-    - move_type: the strings INITIAL, ROAD, RAILROAD,
+    - move_types: a set containing the strings INITIAL, ROAD, RAILROAD,
         or RAILROAD_CORNER, depending on how the move was made
     """
 
@@ -62,8 +63,8 @@ class Movement:
         if (self.start is None) != (self.turn == 0):
             raise ValueError()
 
-        self.move_type = self.board.verify_move(self.piece, self.end)
-        if self.move_type is None:
+        self.move_types = self.board.verify_move(self.piece, self.end)
+        if self.move_types is None:
             raise ValueError()
 
         end_piece = board.get(end)
@@ -87,6 +88,11 @@ class Movement:
                 raise ValueError('This is not an attack!')
 
             self.attack = None
+
+    def is_type(self, move_type):
+        """Check whether this Movement's type is only the given type."""
+
+        return len(self.move_types) == 1 and move_type in self.move_types
 
 class BoardPiece:
     """Represents a piece on the board with a type and an event history.
@@ -131,7 +137,7 @@ class BoardPiece:
         elif spec.sessile and event.piece is self:
             return False
         elif (not spec.railroad_corners and event.piece is self and
-              event.move_type == 'RAILROAD_CORNER'):
+              event.is_type('RAILROAD_CORNER')):
             return False
         elif event.attack is not None:
             attacker_type, attacked_type = None, None
@@ -557,8 +563,13 @@ class LuzhanqiBoard:
         def to_result(moves):
             for move, corner in moves.items():
                 if move != piece.position:
+                    if corner:
+                        move_type = 'RAILROAD_CORNER'
+                    else:
+                        move_type = 'RAILROAD'
+
                     try:
-                        yield self.Coord(*move), corner
+                        yield self.Coord(*move), move_type
                     except ValueError:
                         pass
 
@@ -573,28 +584,30 @@ class LuzhanqiBoard:
         and the string 'ROAD'.
         """
 
+        move_type = 'ROAD'
+
         either_side = lambda axis, i: (i - 1, i + 1)
         for end in cls.system.map_coord_components_separately([position],
                                                               x=either_side,
                                                               y=either_side):
-            yield end
+            yield end, move_type
 
         all_diagonals = cls.position_spec(position).diagonals
         for end in cls.system.map_coord_components([position],
                                                    x=either_side,
                                                    y=either_side):
             if all_diagonals or cls.position_spec(end).diagonals:
-                yield end
+                yield end, move_type
+
+    def _all_moves(self, piece):
+        return merge_dicts(dict(self.road_moves(piece.position)),
+                           self._railroad_moves(piece))
 
     def _valid_moves_for_piece(self, piece):
-        position = piece.position
-
         if not self.can_move(piece):
             return set()
 
-        valid_moves = set(self.road_moves(position))
-
-        valid_moves |= set(self._railroad_moves(piece))
+        valid_moves = self._all_moves(piece)
 
         valid_moves = {Movement(self, piece, move)
                        for move in valid_moves
@@ -623,22 +636,19 @@ class LuzhanqiBoard:
                 not self.position_match(end, piece.spec.initial_placement)):
                 return None
 
-            return 'INITIAL'
+            return {'INITIAL'}
 
         if (start == end or
             not self.can_move(piece) or
             not self._verify_attack(piece, end)):
             return None
 
-        if end in self.road_moves(start):
-            return 'ROAD'
+        all_moves = self._all_moves(piece)
 
-        railroad_moves = self._railroad_moves(piece)
-        if end in railroad_moves:
-            if railroad_moves[end]: # if it is a corner move
-                return 'RAILROAD_CORNER'
-            else:
-                return 'RAILROAD'
+        try:
+            return all_moves[end]
+        except KeyError:
+            pass
 
         return None
 
