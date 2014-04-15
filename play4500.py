@@ -150,9 +150,9 @@ def parse_movement(board, move):
 
     return Movement(board, piece, end, outcome)
 
-invalid_move = re.compile('^Invalid\s+Board\s+Move\s+(.*)$')
-flag_pos = re.compile('^F\s+(\w+)$')
-victory = re.compile('(1|2|No)\s+Victory')
+invalid_move = re.compile('^\s*Invalid\s+Board\s+Move\s+(.*?)\s*$')
+flag_pos = re.compile('^\s*F\s+(\w+)\s*$')
+victory = re.compile('^\s*(1|2|No)\s+Victory\s*$')
 
 def write(message):
     """Send a message to the referee.
