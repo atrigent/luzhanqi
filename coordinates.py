@@ -1,5 +1,6 @@
 from collections import namedtuple
 from itertools import product
+import math
 
 from misc import match, sequence_getitem
 
@@ -33,6 +34,9 @@ def coordtuple(name, axes):
 
         def __neg__(self):
             return self._map_vals(lambda val: -val)
+
+        def distance(self, other):
+            return math.sqrt(sum((a - b)**2 for a, b in zip(self, other)))
 
     T.__name__ = name
 
