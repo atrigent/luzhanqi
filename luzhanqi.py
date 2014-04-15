@@ -115,18 +115,6 @@ class BoardPiece:
             return '-' + ','.join(sorted(maybe.symbol
                                          for maybe in self.maybies))
 
-    def __hash__(self):
-        if self.initial is None:
-            raise TypeError()
-
-        return hash(self.initial)
-
-    def __eq__(self, other):
-        if self.initial is None:
-            return False
-
-        return self.initial == other.initial
-
     def _fatal_event(self, event):
         if event.attack is None:
             return None
