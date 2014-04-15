@@ -294,11 +294,11 @@ def main():
                        LuzhanqiBoard.LANDMINE,
                        LuzhanqiBoard.BOMB]
 
-    def get_placements(piece, choices):
-        return rng.sample(choices, piece.initial_count)
+    def get_placement(piece, choices):
+        return rng.sample(choices, 1)[0]
 
     game = LuzhanqiBoard()
-    game.setup(placement_order, get_placements)
+    game.setup(placement_order, get_placement)
 
     write('(' +
           ' '.join('({0} {1})'.format(piece.initial, piece.spec.symbol)

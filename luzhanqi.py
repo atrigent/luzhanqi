@@ -703,7 +703,7 @@ class LuzhanqiBoard:
             if piece not in order:
                 yield piece
 
-    def _do_initial_placement(self, placement_order, get_placements):
+    def _do_initial_placement(self, placement_order, get_placement):
         positions = set(self.initial_positions())
 
         for piece in self._placement_order(placement_order):
@@ -719,14 +719,15 @@ class LuzhanqiBoard:
             if len(choices) < piece.initial_count:
                 raise RuntimeError("Not enough choices to place piece!")
 
-            chosen = set(get_placements(piece, choices))
-            for choice in chosen:
+            for _ in range(piece.initial_count):
+                choice = get_placement(piece, choices)
+                choices.remove(choice)
+                positions.remove(choice)
+
                 new_piece = BoardPiece(piece)
                 new_piece.add_event(Movement(self, new_piece, choice))
                 self.friendly_pieces.add(new_piece)
                 self.board[choice] = new_piece
-
-            positions -= chosen
 
     def setup(self, placement_order, get_placements):
         """Set up the board, placing our own pieces in the specified way.
