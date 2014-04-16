@@ -225,6 +225,24 @@ def receive_message(game):
 
         logging.error('parsing failed for "' + message + '"')
 
+def good_moves(game, moves):
+    moves_by_piece = {}
+    for move in moves:
+        moves_by_piece.setdefault(move.piece, set()).add(move)
+
+    for piece, moves in moves_by_piece.items():
+        if piece.spec == game.BOMB:
+            if not game.position_spec(piece.position).safe:
+                for move in moves:
+                    if game.position_spec(move.end).safe:
+                        return {move}
+
+            for move in moves:
+                if move.attack:
+                    return {move}
+
+    return moves
+
 def do_move(game, rng):
     """Picks a move to make and sends it to the referee.
 
@@ -250,7 +268,7 @@ def do_move(game, rng):
         write('forfeit')
         return
 
-    move = rng.sample(moves, 1)[0]
+    move = rng.sample(good_moves(game, moves), 1)[0]
     write('({0} {1})'.format(move.start, move.end))
 
     receive_message(game)
@@ -311,9 +329,14 @@ def main():
         return choices & {game.Coord(flag_loc.x + 1, flag_loc.y),
                           game.Coord(flag_loc.x - 1, flag_loc.y)}
 
+    def get_bomb_placements(choices):
+        return choices & {game.Coord(-2, 4), game.Coord(2, 4)}
+
     def get_placement(piece, choices):
         if piece == LuzhanqiBoard.LANDMINE:
             choices = good_landmine_placements(choices)
+        elif piece == LuzhanqiBoard.BOMB:
+            choices = get_bomb_placements(choices)
 
         return rng.sample(choices, 1)[0]
 
