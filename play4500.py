@@ -241,7 +241,62 @@ def good_moves(game, moves):
                 if move.attack:
                     return {move}
 
-    return moves
+    good_moves = set()
+
+    enemy_front_lines = {
+        game.Coord(-2, -1),
+        game.Coord(0, -1),
+        game.Coord(2, -1)
+    }
+
+    maybe_flags = set()
+    for piece in game.get_living_enemy_pieces():
+        if game.FLAG in piece.maybies:
+            maybe_flags.add(piece)
+
+    for flag in maybe_flags:
+        if len(flag.maybies) == 1:
+            maybe_flags = {flag}
+            break
+
+    maybe_flags = {piece.position for piece in maybe_flags}
+
+    for piece, moves in moves_by_piece.items():
+        if piece.spec == game.BOMB:
+            continue
+
+        def end_distance_to(to):
+            return lambda m: to.distance(m.end)
+
+        closest_flag = sorted(maybe_flags,
+                              key=piece.position.distance)[0]
+        best_flag_move = sorted(moves,
+                                key=end_distance_to(closest_flag))[0]
+        if (best_flag_move.end.distance(closest_flag) <
+            best_flag_move.start.distance(closest_flag)):
+            good_moves.add(best_flag_move)
+        else:
+            if piece.position.y < 0:
+                continue
+
+            closest_front_line = sorted(enemy_front_lines,
+                                        key=piece.position.distance)[0]
+            best_front_line_move = sorted(moves,
+                                          key=end_distance_to(
+                                                  closest_front_line
+                                              ))[0]
+
+            if (best_front_line_move.end.distance(closest_front_line) <
+                best_front_line_move.start.distance(closest_front_line)):
+                good_moves.add(best_front_line_move)
+
+    enemy_territory_moves = {move for move in good_moves
+                                  if move.end.y < 0}
+
+    if enemy_territory_moves:
+        return enemy_territory_moves
+    else:
+        return good_moves
 
 def do_move(game, rng):
     """Picks a move to make and sends it to the referee.
