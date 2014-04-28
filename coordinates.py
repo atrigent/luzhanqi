@@ -255,3 +255,6 @@ class CoordinateSystemState:
             raise KeyError(position)
 
         self.state[position] = value
+
+    def __iter__(self):
+        return iter(self.state)
