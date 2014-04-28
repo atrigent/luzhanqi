@@ -319,11 +319,15 @@ def do_move(game, rng):
     """
 
     moves = set(game.valid_moves())
+    good_moves = get_good_moves(game, moves)
+    if len(good_moves) > 0:
+        moves = good_moves
+
     if len(moves) == 0:
         write('forfeit')
         return
 
-    move = rng.sample(get_good_moves(game, moves), 1)[0]
+    move = rng.sample(moves, 1)[0]
     write('({0} {1})'.format(move.start, move.end))
 
     receive_message(game)
