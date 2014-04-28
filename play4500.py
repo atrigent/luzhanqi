@@ -225,7 +225,7 @@ def receive_message(game):
 
         logging.error('parsing failed for "' + message + '"')
 
-def good_moves(game, moves):
+def get_good_moves(game, moves):
     moves_by_piece = {}
     for move in moves:
         moves_by_piece.setdefault(move.piece, set()).add(move)
@@ -323,7 +323,7 @@ def do_move(game, rng):
         write('forfeit')
         return
 
-    move = rng.sample(good_moves(game, moves), 1)[0]
+    move = rng.sample(get_good_moves(game, moves), 1)[0]
     write('({0} {1})'.format(move.start, move.end))
 
     receive_message(game)
