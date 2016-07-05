@@ -195,10 +195,10 @@ class BoardPiece:
         """
 
         if self.spec is not None:
-            raise RuntimError('We already know what this piece is!')
+            raise RuntimeError('We already know what this piece is!')
 
         if spec not in self.maybies:
-            raise RuntimError('Attempt to infer that a piece is something '
+            raise RuntimeError('Attempt to infer that a piece is something '
                               'that it cannot be')
 
         self.maybies = {spec}
